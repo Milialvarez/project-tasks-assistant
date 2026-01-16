@@ -8,15 +8,19 @@ from dotenv import load_dotenv
 # cargar .env
 load_dotenv()
 
+# configuracion inicial de alembic, toma de alembic ini
 config = context.config
 
 # override sqlalchemy.url desde .env
 database_url = os.getenv("DATABASE_URL")
+# se aborta el proceso si no se detecta la db
 if not database_url:
     raise RuntimeError("DATABASE_URL no definida")
 
+# determina no usar la url de alembic ini (no definida) para usar esta
 config.set_main_option("sqlalchemy.url", database_url)
 
+# aplico configuracion de logs
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
@@ -37,6 +41,7 @@ from app.infrastructure.db.models import (
     sprint,
 )
 
+# obliga a la db real a comparar con los modelos
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:

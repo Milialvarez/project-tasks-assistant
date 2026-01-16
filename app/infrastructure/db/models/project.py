@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.infrastructure.db.base import Base
 
+# model for project schema, represents a real life project
 class Project(Base):
     __tablename__ = "projects"
 
