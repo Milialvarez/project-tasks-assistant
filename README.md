@@ -24,10 +24,15 @@ The main goal of this project is to practice and apply **clean backend architect
 The project follows **Hexagonal Architecture**, separating the system into clear layers:
 app/
 ├── api/ # HTTP layer (FastAPI routers)
+
 ├── application/ # Use cases (business workflows)
+
 ├── domain/ # Business rules, entities, enums
+
 ├── infrastructure/ # Database models, repositories, adapters
+
 ├── core/ # App configuration & database setup
+
 └── main.py # Application entrypoint
 
 
