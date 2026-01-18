@@ -5,6 +5,7 @@ from app.application.users.activate_user import ActivateUserUseCase
 from app.application.users.register_user import RegisterUserUseCase
 from app.core.database import get_db
 from app.infrastructure.db.repositories.activation_token_repository import ActivationTokenRepository
+from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 from app.infrastructure.services.email_service import EmailService
 from app.schemas.user import RegisterUserRequest
 
@@ -14,11 +15,11 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def register_user(data: RegisterUserRequest, db: Session = Depends(get_db)):
     try:
         use_case = RegisterUserUseCase(
-            UserRepository(db),
+            SqlAlchemyUserRepository(UserRepository),
             ActivationTokenRepository(db),
             EmailService()
         )
-        use_case.execute(data.email, data.password)
+        use_case.execute(data.email, data.password, data.name)
         return {"message": "Check your email to activate your account"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

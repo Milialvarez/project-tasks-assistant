@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from app.application.ports.user_repository import UserRepository
 from app.infrastructure.db.models.user import User
 
-
 class SqlAlchemyUserRepository(UserRepository):
 
     def __init__(self, db: Session):

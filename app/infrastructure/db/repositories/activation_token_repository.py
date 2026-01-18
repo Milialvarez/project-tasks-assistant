@@ -1,6 +1,7 @@
 import datetime
-from app.infrastructure.db.models.user import ActivationToken
 from sqlalchemy.orm import Session
+
+from app.infrastructure.db.models.activation_token import ActivationToken
 
 
 class ActivationTokenRepository:
