@@ -15,3 +15,16 @@ class SqlAlchemyUserRepository(UserRepository):
             .first()
             is not None
         )
+
+    def get_by_email(self, email: str) -> User | None:
+        return self.db.query(User).filter(User.email == email).first()
+
+    def create(self, user: User) -> User:
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def activate_user(self, user: User):
+        user.is_active = True
+        self.db.commit()
