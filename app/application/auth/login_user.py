@@ -14,7 +14,7 @@ class LoginUserUseCase:
         if not user.active:
             raise ValueError("User not activated")
 
-        if not self.password_service.verify(password, user.hashed_password):
+        if not self.password_service.verify(password, user.password_hash):
             raise ValueError("Invalid credentials")
 
         access_token = self.jwt_service.create_access_token(

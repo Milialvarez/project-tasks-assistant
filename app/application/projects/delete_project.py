@@ -10,7 +10,7 @@ class DeleteProjectUseCase:
         if not project:
             raise ValueError("Project not found")
 
-        if project.created_by != user_id:
-            raise ValueError("You cannot delete this project because you're not the creator")
+        if not self.project_repository.is_manager(project_id, user_id):
+            raise ValueError("You are not allowed to delete this project")
 
         self.project_repository.delete(project)

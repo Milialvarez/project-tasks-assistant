@@ -17,8 +17,9 @@ class UpdateProjectUseCase:
         if not project:
             raise ValueError("Project not found")
 
-        if project.created_by != user_id:
-            raise ValueError("You cannot modify this project because you're not the creator")
+        if not self.project_repository.is_manager(project_id, user_id):
+            raise ValueError("You are not allowed to update this project")
+
 
         if name is not None:
             if not name.strip():

@@ -14,3 +14,20 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return int(user_id)
     except JWTError:
         raise HTTPException(status_code=401)
+
+def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=HTTPException.HTTP_401_UNAUTHORIZED)
+
+        return int(user_id)
+
+    except JWTError:
+        raise HTTPException(status_code=HTTPException.HTTP_401_UNAUTHORIZED)

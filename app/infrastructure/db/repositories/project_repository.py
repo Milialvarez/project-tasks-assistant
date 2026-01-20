@@ -53,3 +53,23 @@ class SqlAlchemyProjectRepository(ProjectRepository):
         """
         self.db.delete(project)
         self.db.commit()
+
+    def is_manager(self, project_id: int, user_id: int) -> bool:
+        project = (
+            self.db.query(Project)
+            .filter(Project.id == project_id, Project.created_by == user_id)
+            .first()
+        )
+        return project is not None
+
+
+    def is_member(self, project_id: int, user_id: int) -> bool:
+        return (
+            self.db.query(ProjectMember)
+            .filter(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id,
+            )
+            .first()
+            is not None
+        )

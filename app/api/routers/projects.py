@@ -6,6 +6,7 @@ from app.application.projects.get_user_projects import GetUserProjectsUseCase
 from app.application.projects.update_project import UpdateProjectUseCase
 from app.core.database import get_db
 from app.application.projects.create_project import CreateProjectUseCase
+from app.dependencies.auth import get_current_user_id
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 
@@ -16,6 +17,7 @@ def create_project(
     name: str,
     description: str | None = None,
     db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
 ):
     """
     Creates a project
@@ -27,21 +29,17 @@ def create_project(
     :param db: db session available to execute the operation
     :type db: Session
     """
-    project_repository = SqlAlchemyProjectRepository(db)
-    user_repository = SqlAlchemyUserRepository(db)
-
+     
     use_case = CreateProjectUseCase(
-        project_repository=project_repository,
-        user_repository=user_repository,
+        project_repository=SqlAlchemyProjectRepository(db),
+        user_repository=SqlAlchemyUserRepository(db),
     )
 
-    project = use_case.execute(
+    return use_case.execute(
         name=name,
         description=description,
-        created_by=1,  # hardcoded until the jwt implementation is working
+        created_by=current_user_id,
     )
-
-    return project
 
 @router.get("/user/{user_id}")
 def get_user_projects(
@@ -72,6 +70,7 @@ def update_project(
     name: str | None = None,
     description: str | None = None,
     db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
 ):
     """
     Update a project
@@ -85,21 +84,23 @@ def update_project(
     :param db: db session available to execute the operation
     :type db: Session
     """
-    project_repo = SqlAlchemyProjectRepository(db)
-
-    use_case = UpdateProjectUseCase(project_repo)
+    use_case = UpdateProjectUseCase(
+        SqlAlchemyProjectRepository(db)
+    )
 
     return use_case.execute(
         project_id=project_id,
-        user_id=1,  # hardcoded
+        user_id=current_user_id,
         name=name,
         description=description,
     )
+
 
 @router.delete("/{project_id}")
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
 ):
     """
     Delete a project
@@ -109,13 +110,12 @@ def delete_project(
     :param db: db session available to execute the operation
     :type db: Session
     """
-    project_repo = SqlAlchemyProjectRepository(db)
 
-    use_case = DeleteProjectUseCase(project_repo)
+    use_case = DeleteProjectUseCase(SqlAlchemyProjectRepository(db))
 
     use_case.execute(
         project_id=project_id,
-        user_id=1,  # hardcoded
+        user_id=current_user_id
     )
 
     return {"message": "Project deleted successfully"}

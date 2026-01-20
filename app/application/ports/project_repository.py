@@ -18,3 +18,11 @@ class ProjectRepository(ABC):
     @abstractmethod
     def delete(self, project):
         pass
+
+    @abstractmethod
+    def is_manager(self, project_id: int, user_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    def is_member(self, project_id: int, user_id: int) -> bool:
+        pass
