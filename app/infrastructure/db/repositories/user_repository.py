@@ -24,6 +24,11 @@ class SqlAlchemyUserRepository(UserRepository):
         self.db.refresh(user)
         return user
 
-    def activate_user(self, user: User):
-        user.is_active = True
+    def activate_user(self, user_id: int) -> None:
+        user = self.db.query(User).filter(User.id == user_id).first()
+
+        if not user:
+            raise ValueError("User not found")
+
+        user.active = True
         self.db.commit()

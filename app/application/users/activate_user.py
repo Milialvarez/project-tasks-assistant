@@ -1,7 +1,6 @@
 from app.application.ports.user_repository import UserRepository
 from app.infrastructure.db.repositories.activation_token_repository import ActivationTokenRepository
 
-
 class ActivateUserUseCase:
 
     def __init__(
@@ -18,5 +17,5 @@ class ActivateUserUseCase:
         if not token:
             raise ValueError("Invalid or expired token")
 
-        self.user_repo.activate_user(token.user)
+        self.user_repo.activate_user(token.user_id)
         self.token_repo.delete(token)
