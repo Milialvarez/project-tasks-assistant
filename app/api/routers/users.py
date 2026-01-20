@@ -15,11 +15,16 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def register_user(data: RegisterUserRequest, db: Session = Depends(get_db)):
     try:
         use_case = RegisterUserUseCase(
-            SqlAlchemyUserRepository(UserRepository),
+            SqlAlchemyUserRepository(db),
             ActivationTokenRepository(db),
             EmailService()
         )
-        use_case.execute(data.email, data.password, data.name)
+        use_case.execute(
+        email=data.email,
+        password=data.password,
+        name=data.name,
+        )
+
         return {"message": "Check your email to activate your account"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -29,7 +34,7 @@ def register_user(data: RegisterUserRequest, db: Session = Depends(get_db)):
 def activate_user(token: str, db: Session = Depends(get_db)):
     try:
         use_case = ActivateUserUseCase(
-            UserRepository(db),
+            SqlAlchemyUserRepository(db),
             ActivationTokenRepository(db)
         )
         use_case.execute(token)

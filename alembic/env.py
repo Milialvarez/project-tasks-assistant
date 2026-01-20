@@ -39,6 +39,7 @@ from app.infrastructure.db.models import (
     decision,
     objective,
     sprint,
+    activation_token
 )
 
 # obliga a la db real a comparar con los modelos
