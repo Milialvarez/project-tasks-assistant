@@ -17,3 +17,7 @@ class UserRepository(ABC):
     @abstractmethod
     def activate_user(self, user_id: int) -> None:
         pass
+    
+    @abstractmethod 
+    def get_by_id(self, user_id: int):
+        pass

@@ -41,11 +41,8 @@ class SqlAlchemyProjectRepository(ProjectRepository):
         """
         Obtains a project by its ID
         """
-        return (
-            self.db.query(Project)
-            .filter(Project.id == project_id)
-            .first()
-        )
+        project = self.db.query(Project).filter(Project.id == project_id).first()
+        return project
 
     def delete(self, project: Project):
         """

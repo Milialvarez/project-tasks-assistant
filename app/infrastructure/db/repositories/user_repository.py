@@ -32,3 +32,10 @@ class SqlAlchemyUserRepository(UserRepository):
 
         user.active = True
         self.db.commit()
+
+    def get_by_id(self, user_id: int):
+        """
+        Obtains an user by its ID
+        """
+        user = self.db.query(User).filter(User.id == user_id).first()
+        return user
