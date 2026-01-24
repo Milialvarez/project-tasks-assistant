@@ -31,3 +31,15 @@ class SqlAlchemyTaskRepository(TaskRepository):
             query = query.filter(Task.assigned_user_id == assigned_user_id)
 
         return query.all()
+    
+    def get_by_id(self, task_id: int):
+        return self.db.query(Task).filter(Task.id == task_id).first()
+
+    def update(self, task: Task):
+        self.db.commit()
+        self.db.refresh(task)
+        return task
+
+    def delete(self, task: Task):
+        self.db.delete(task)
+        self.db.commit()

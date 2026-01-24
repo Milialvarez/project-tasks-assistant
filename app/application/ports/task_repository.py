@@ -16,3 +16,15 @@ class TaskRepository(ABC):
         assigned_user_id: int | None,
     ) -> list[Task]:
         pass
+
+    @abstractmethod
+    def get_by_id(self, task_id: int) -> Task | None:
+        pass
+
+    @abstractmethod
+    def update(self, task: Task) -> Task:
+        pass
+
+    @abstractmethod
+    def delete(self, task: Task) -> None:
+        pass

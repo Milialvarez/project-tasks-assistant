@@ -23,4 +23,12 @@ class TaskResponse(BaseModel):
     created_at: datetime
 
     class Config:
-        from_attributes = True  #
+        from_attributes = True  
+
+class TaskUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    sprint_id: int | None = None
+    assigned_user_id: int | None = None
+    current_status: TaskStatus | None = None
+    archived: bool | None = None
