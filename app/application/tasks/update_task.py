@@ -1,13 +1,16 @@
+from app.application.ports.project_repository import ProjectRepository
+from app.application.ports.task_repository import TaskRepository
+from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
+from app.application.ports.user_repository import UserRepository
 from app.infrastructure.db.models.task_status_history import TaskStatusHistory
-
 
 class UpdateTaskUseCase:
     def __init__(
         self,
-        task_repository,
-        user_repository,
-        project_repository,
-        status_history_repository,
+        project_repository: ProjectRepository,
+        user_repository: UserRepository,
+        task_repository: TaskRepository,
+        status_history_repository: TaskStatusHistoryRepository,
     ):
         self.task_repository = task_repository
         self.user_repository = user_repository

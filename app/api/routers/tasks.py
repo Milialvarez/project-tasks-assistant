@@ -44,17 +44,26 @@ def filter_tasks(
     project_id: int | None = None,
     sprint_id: int | None = None,
     assigned_user_id: int | None = None,
+    current_user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """
-    Docstring for get_tasks_by_project
+    Docstring for filter_tasks
+    Filter tasks by project (required), sprint or assigned user. Always verifies the user
+    who wants to get the task is member of the project with the sent ID
     
-    :param project_id: ID of the project that will filter the tasks
-    :type project_id: int
+    :param project_id: ID of the project to filter
+    :type project_id: int | None
+    :param sprint_id: Id of the sprint to filter
+    :type sprint_id: int | None
+    :param assigned_user_id: ID of the user assigned to a task to filter
+    :type assigned_user_id: int | None
+    :param current_user_id: ID of the user who wants to execute the operation
+    :type current_user_id: int
     :param db: db session available to execute the operation
     :type db: Session
     """
-     
+
     use_case = FilterTasksUseCase(
         project_repository=SqlAlchemyProjectRepository(db),
         user_repository=SqlAlchemyUserRepository(db),
@@ -66,9 +75,11 @@ def filter_tasks(
             project_id=project_id,
             sprint_id=sprint_id,
             assigned_user_id=assigned_user_id,
+            current_user_id=current_user_id,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.put("/{task_id}", response_model=TaskResponse)
 def update_task(

@@ -1,8 +1,12 @@
+from app.application.ports.project_repository import ProjectRepository
+from app.application.ports.task_repository import TaskRepository
+
+
 class DeleteTaskUseCase:
     def __init__(
         self,
-        task_repository,
-        project_repository,
+        task_repository: TaskRepository,
+        project_repository: ProjectRepository,
     ):
         self.task_repository = task_repository
         self.project_repository = project_repository
