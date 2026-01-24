@@ -7,6 +7,7 @@ from app.application.projects.update_project import UpdateProjectUseCase
 from app.core.database import get_db
 from app.application.projects.create_project import CreateProjectUseCase
 from app.dependencies.auth import get_current_user_id
+from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 
@@ -29,9 +30,9 @@ def create_project(
     :param db: db session available to execute the operation
     :type db: Session
     """
-     
     use_case = CreateProjectUseCase(
         project_repository=SqlAlchemyProjectRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
         user_repository=SqlAlchemyUserRepository(db),
     )
 
@@ -40,6 +41,7 @@ def create_project(
         description=description,
         created_by=current_user_id,
     )
+
 
 @router.get("/user/{user_id}")
 def get_user_projects(
