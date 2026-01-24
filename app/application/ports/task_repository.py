@@ -6,3 +6,13 @@ class TaskRepository(ABC):
     @abstractmethod
     def create(self, task: Task) -> Task:
         pass
+
+    @abstractmethod
+    def filter(
+        self,
+        *,
+        project_id: int | None,
+        sprint_id: int | None,
+        assigned_user_id: int | None,
+    ) -> list[Task]:
+        pass
