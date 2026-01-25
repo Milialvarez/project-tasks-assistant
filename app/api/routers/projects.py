@@ -1,15 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.application.projects.accept_invitation import AcceptProjectInvitationUseCase
 from app.application.projects.delete_project import DeleteProjectUseCase
 from app.application.projects.get_user_projects import GetUserProjectsUseCase
+from app.application.projects.invite_member import InviteProjectMemberUseCase
+from app.application.projects.reject_invitation import RejectProjectInvitationUseCase
 from app.application.projects.update_project import UpdateProjectUseCase
 from app.core.database import get_db
 from app.application.projects.create_project import CreateProjectUseCase
 from app.dependencies.auth import get_current_user_id
+from app.infrastructure.db.repositories.project_invitation_repository import SqlAlchemyProjectInvitationRepository
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
+from app.infrastructure.services.email_service import EmailService
 from app.schemas.project import ProjectCreate, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
@@ -132,3 +137,66 @@ def delete_project(
 
     return {"message": "Project deleted successfully"}
 
+@router.post("/{project_id}/invite", status_code=201)
+def invite_project_member(
+    project_id: int,
+    invited_email: str,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    use_case = InviteProjectMemberUseCase(
+        project_repo=SqlAlchemyProjectRepository(db),
+        user_repo=SqlAlchemyUserRepository(db),
+        invitation_repo=SqlAlchemyProjectInvitationRepository(db),
+        member_repo=SqlAlchemyProjectMemberRepository(db),
+        email_service=EmailService(),
+    )
+
+    try:
+        invitation = use_case.execute(
+            project_id=project_id,
+            invited_email=invited_email,
+            current_user_id=current_user_id,
+        )
+        return {
+            "message": "Invitation sent successfully",
+            "invitation_id": invitation.id,
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/invitations/{invitation_id}/accept")
+def accept_project_invitation(
+    invitation_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    use_case = AcceptProjectInvitationUseCase(
+        invitation_repo=SqlAlchemyProjectInvitationRepository(db),
+        member_repo=SqlAlchemyProjectMemberRepository(db),
+    )
+
+    try:
+        use_case.execute(invitation_id=invitation_id, user_id=current_user_id)
+        return {"message": "Invitation accepted"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/invitations/{invitation_id}/reject")
+def reject_project_invitation(
+    invitation_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    use_case = RejectProjectInvitationUseCase(
+        invitation_repo=SqlAlchemyProjectInvitationRepository(db)
+    )
+
+    try:
+        use_case.execute(
+            invitation_id=invitation_id,
+            user_id=current_user_id,
+        )
+        return {"message": "Invitation rejected"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

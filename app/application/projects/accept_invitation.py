@@ -23,6 +23,9 @@ class AcceptProjectInvitationUseCase:
             self.invitation_repo.update(invitation)
             raise ValueError("Invitation expired")
 
+        if invitation.invited_user_id != user_id:
+            raise ValueError("This invitation does not belong to you")
+
         member = ProjectMember(
             project_id=invitation.project_id,
             user_id=invitation.invited_user_id,
