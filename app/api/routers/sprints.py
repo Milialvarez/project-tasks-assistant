@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.application.sprints.create_sprint import CreateSprintUseCase
 from app.core.database import get_db
@@ -29,7 +29,12 @@ def create_sprint(sprint: SprintCreate,
     use_case = CreateSprintUseCase(
         sprint_repo=SqlAlchemySprintRepository(db),
         project_repo=SqlAlchemyProjectRepository(db),
-        user_repo=SqlAlchemyUserRepository
+        user_repo=SqlAlchemyUserRepository(db)
     )
 
-    return use_case.execute(sprint, current_user_id)
+    try:
+        return use_case.execute(sprint, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -22,8 +22,21 @@ class CreateSprintUseCase:
             sprint: SprintCreate,
             user_id: int
         ) -> Sprint:
-            if not self.user_repo.exists(user_id=user_id) or self.project_repo.is_manager(sprint.project_id, user_id):
-                raise ValueError("User doesn't exists or isn't the project manager")
-            
-            sprint_created = self.sprint_repo.create(sprint)
-            return sprint_created
+            if not self.user_repo.exists(user_id):
+                raise ValueError("User does not exist")
+
+            if not self.project_repo.is_manager(sprint.project_id, user_id):
+                raise ValueError("User is not project manager")
+
+            sprint_entity = Sprint(
+                project_id=sprint.project_id,
+                name=sprint.name,
+                description=sprint.description,
+                started_at=sprint.started_at,
+                status=sprint.status,
+            )
+
+            try:
+                return self.sprint_repo.create(sprint_entity)
+            except Exception:
+                raise RuntimeError("Failed to create sprint")
