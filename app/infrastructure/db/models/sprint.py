@@ -9,6 +9,6 @@ class Sprint(Base):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    started_at = Column(DateTime, nullable=False)
+    started_at = Column(DateTime)
     ended_at = Column(DateTime)
     status = Column(Enum(SprintStatus), nullable=False)
