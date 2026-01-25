@@ -45,7 +45,10 @@ class RegisterUserUseCase:
             expires_at=datetime.utcnow() + timedelta(hours=24),
         )
 
-        self.token_repo.create(token)
+        try:
+            self.token_repo.create(token)
+        except Exception:
+                raise RuntimeError("Failed to register user")
 
         self.email_service.send_activation_email(
             to_email=user.email,

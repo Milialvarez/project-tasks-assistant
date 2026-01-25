@@ -43,4 +43,7 @@ class CreateTaskUseCase:
         )
 
         # Persist the task in the db
-        return self.task_repository.create(new_task)
+        try:
+            return self.task_repository.create(new_task)
+        except Exception:
+                raise RuntimeError("Failed to create the task")

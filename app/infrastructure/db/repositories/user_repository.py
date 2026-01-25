@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.application.ports.user_repository import UserRepository
 from app.infrastructure.db.models.user import User
+from sqlalchemy.exc import SQLAlchemyError
 
 class SqlAlchemyUserRepository(UserRepository):
 
@@ -19,10 +20,14 @@ class SqlAlchemyUserRepository(UserRepository):
         return self.db.query(User).filter(User.email == email).first()
 
     def create(self, user: User) -> User:
-        self.db.add(user)
-        self.db.commit()
-        self.db.refresh(user)
-        return user
+        try:
+            self.db.add(user)
+            self.db.commit()
+            self.db.refresh(user)
+            return user
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def activate_user(self, user_id: int) -> None:
         user = self.db.query(User).filter(User.id == user_id).first()
@@ -31,7 +36,11 @@ class SqlAlchemyUserRepository(UserRepository):
             raise ValueError("User not found")
 
         user.active = True
-        self.db.commit()
+        try:
+            self.db.commit()
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def get_by_id(self, user_id: int):
         """

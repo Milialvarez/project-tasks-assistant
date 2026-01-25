@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.application.projects.delete_project import DeleteProjectUseCase
@@ -10,13 +10,13 @@ from app.dependencies.auth import get_current_user_id
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
+from app.schemas.project import ProjectCreate, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 @router.post("/")
 def create_project(
-    name: str,
-    description: str | None = None,
+    project: ProjectCreate,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
 ):
@@ -36,11 +36,15 @@ def create_project(
         user_repository=SqlAlchemyUserRepository(db),
     )
 
-    return use_case.execute(
-        name=name,
-        description=description,
-        created_by=current_user_id,
-    )
+    try:
+        return use_case.execute(
+            project=project,
+            created_by=current_user_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/user/{user_id}")
@@ -68,9 +72,7 @@ def get_user_projects(
 
 @router.put("/{project_id}")
 def update_project(
-    project_id: int,
-    name: str | None = None,
-    description: str | None = None,
+    project: ProjectUpdate,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
 ):
@@ -90,12 +92,15 @@ def update_project(
         SqlAlchemyProjectRepository(db)
     )
 
-    return use_case.execute(
-        project_id=project_id,
-        user_id=current_user_id,
-        name=name,
-        description=description,
-    )
+    try:
+        return use_case.execute(
+            project=project,
+            user_id=current_user_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{project_id}")
@@ -115,9 +120,14 @@ def delete_project(
 
     use_case = DeleteProjectUseCase(SqlAlchemyProjectRepository(db))
 
-    use_case.execute(
-        project_id=project_id,
-        user_id=current_user_id
-    )
+    try:
+        use_case.execute(
+            project_id=project_id,
+            user_id=current_user_id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     return {"message": "Project deleted successfully"}

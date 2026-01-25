@@ -1,5 +1,6 @@
 from app.application.ports.task_repository import TaskRepository
 from app.infrastructure.db.models.task import Task
+from sqlalchemy.exc import SQLAlchemyError
 
 class SqlAlchemyTaskRepository(TaskRepository):
 
@@ -7,10 +8,14 @@ class SqlAlchemyTaskRepository(TaskRepository):
         self.db = db
 
     def create(self, task: Task) -> Task:
-        self.db.add(task)
-        self.db.commit()
-        self.db.refresh(task)
-        return task
+        try:
+            self.db.add(task)
+            self.db.commit()
+            self.db.refresh(task)
+            return task
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def filter(
         self,
@@ -36,10 +41,18 @@ class SqlAlchemyTaskRepository(TaskRepository):
         return self.db.query(Task).filter(Task.id == task_id).first()
 
     def update(self, task: Task):
-        self.db.commit()
-        self.db.refresh(task)
-        return task
+        try:
+            self.db.commit()
+            self.db.refresh(task)
+            return task
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def delete(self, task: Task):
-        self.db.delete(task)
-        self.db.commit()
+        try:
+            self.db.delete(task)
+            self.db.commit()
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise

@@ -17,5 +17,8 @@ class ActivateUserUseCase:
         if not token:
             raise ValueError("Invalid or expired token")
 
-        self.user_repo.activate_user(token.user_id)
-        self.token_repo.delete(token)
+        try:
+            self.user_repo.activate_user(token.user_id)
+            self.token_repo.delete(token)
+        except Exception:
+                raise RuntimeError("Failed to activate the user")

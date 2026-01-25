@@ -13,4 +13,7 @@ class DeleteProjectUseCase:
         if not self.project_repository.is_manager(project_id, user_id):
             raise ValueError("You are not allowed to delete this project")
 
-        self.project_repository.delete(project)
+        try:
+            self.project_repository.delete(project)
+        except Exception:
+                raise RuntimeError("Failed to delete project")

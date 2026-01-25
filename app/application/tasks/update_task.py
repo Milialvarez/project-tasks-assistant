@@ -66,4 +66,7 @@ class UpdateTaskUseCase:
         if data.archived is not None:
             task.archived = data.archived
 
-        return self.task_repository.update(task)
+        try:
+            return self.task_repository.update(task)
+        except Exception:
+                raise RuntimeError("Failed to create sprint")

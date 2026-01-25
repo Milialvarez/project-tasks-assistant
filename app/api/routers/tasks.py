@@ -37,6 +37,8 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
         return created_task
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
     
     
 @router.get("/", response_model=list[TaskResponse])
@@ -79,6 +81,8 @@ def filter_tasks(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.put("/{task_id}", response_model=TaskResponse)
@@ -115,6 +119,8 @@ def update_task(
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{task_id}")
@@ -142,3 +148,5 @@ def delete_task(task_id: int,
         return {"message": "Task deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")

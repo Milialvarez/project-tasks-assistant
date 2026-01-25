@@ -4,6 +4,7 @@ from app.infrastructure.db.enums import ProjectRole
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.user_repository import UserRepository
+from app.schemas.project import ProjectCreate
 
 class CreateProjectUseCase:
     def __init__(
@@ -19,11 +20,10 @@ class CreateProjectUseCase:
     def execute(
         self,
         *,
-        name: str,
-        description: str | None,
+        project: ProjectCreate,
         created_by: int,
     ) -> Project:
-        if not name or not name.strip():
+        if not project.name or not project.name.strip():
             raise ValueError("Project name cannot be empty")
 
         if not self.user_repository.exists(created_by):
@@ -31,11 +31,14 @@ class CreateProjectUseCase:
 
         # crear proyecto
         project = Project(
-            name=name.strip(),
-            description=description,
+            name=project.name.strip(),
+            description=project.description,
             created_by=created_by,
         )
-        project = self.project_repository.create(project)
+        try:
+            project = self.project_repository.create(project)
+        except Exception:
+                raise RuntimeError("Failed to create project")
 
         # agregar creador como manager
         member = ProjectMember(
@@ -43,6 +46,9 @@ class CreateProjectUseCase:
             user_id=created_by,
             role=ProjectRole.manager,
         )
-        self.project_member_repository.add_member(member)
+        try:
+            self.project_member_repository.add_member(member)
+        except Exception:
+                raise RuntimeError("Failed to create project member")
 
         return project

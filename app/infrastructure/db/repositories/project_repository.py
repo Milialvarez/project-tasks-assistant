@@ -1,6 +1,7 @@
 from app.application.ports.project_repository import ProjectRepository
 from app.infrastructure.db.models.project import Project
 from app.infrastructure.db.models.project_member import ProjectMember
+from sqlalchemy.exc import SQLAlchemyError
 
 class SqlAlchemyProjectRepository(ProjectRepository):
 
@@ -11,10 +12,14 @@ class SqlAlchemyProjectRepository(ProjectRepository):
         """
         Creates a project
         """
-        self.db.add(project)
-        self.db.commit()
-        self.db.refresh(project)
-        return project
+        try:
+            self.db.add(project)
+            self.db.commit()
+            self.db.refresh(project)
+            return project
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def get_projects_for_user(self, user_id: int):
         """
@@ -48,8 +53,12 @@ class SqlAlchemyProjectRepository(ProjectRepository):
         """
         Deletes a project
         """
-        self.db.delete(project)
-        self.db.commit()
+        try:
+            self.db.delete(project)
+            self.db.commit()
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise
 
     def is_manager(self, project_id: int, user_id: int) -> bool:
         project = (
