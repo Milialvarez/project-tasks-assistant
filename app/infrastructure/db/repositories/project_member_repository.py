@@ -16,3 +16,14 @@ class SqlAlchemyProjectMemberRepository(ProjectMemberRepository):
         except SQLAlchemyError as e:
             self.db.rollback()
             raise
+    
+    def is_member(self, project_id: int, user_id: int) -> bool:
+        return (
+            self.db.query(ProjectMember)
+            .filter(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id,
+            )
+            .first()
+            is not None
+        )

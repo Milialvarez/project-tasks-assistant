@@ -131,3 +131,4 @@ def delete_project(
         raise HTTPException(status_code=500, detail="Internal server error")
 
     return {"message": "Project deleted successfully"}
+

@@ -35,10 +35,6 @@ class CreateProjectUseCase:
             description=project.description,
             created_by=created_by,
         )
-        try:
-            project = self.project_repository.create(project)
-        except Exception:
-                raise RuntimeError("Failed to create project")
 
         # agregar creador como manager
         member = ProjectMember(
@@ -46,9 +42,11 @@ class CreateProjectUseCase:
             user_id=created_by,
             role=ProjectRole.manager,
         )
+
         try:
+            project = self.project_repository.create(project)
             self.project_member_repository.add_member(member)
         except Exception:
-                raise RuntimeError("Failed to create project member")
+                raise RuntimeError("Failed to create project")
 
         return project
