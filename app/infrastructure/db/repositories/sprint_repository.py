@@ -15,3 +15,7 @@ class SqlAlchemySprintRepository(SprintRepository):
         except SQLAlchemyError as e:
             self.db.rollback()
             raise
+
+    def get_by_id(self, sprint_id: int):
+        sprint = self.db.query(Sprint).filter(Sprint.id == sprint_id).first()
+        return sprint
