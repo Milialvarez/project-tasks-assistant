@@ -19,7 +19,6 @@ class UpdateProjectUseCase:
         if not self.project_repository.is_manager(project_data.project_id, user_id):
             raise ValueError("You are not allowed to update this project")
 
-
         if project_data.name is not None:
             if not project_data.name.strip():
                 raise ValueError("Project name cannot be empty")

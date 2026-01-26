@@ -1,4 +1,4 @@
-from app.application.ports.project_repository import ProjectRepository
+from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.task_repository import TaskRepository
 
 
@@ -6,10 +6,10 @@ class DeleteTaskUseCase:
     def __init__(
         self,
         task_repository: TaskRepository,
-        project_repository: ProjectRepository,
+        project_member_repository: ProjectMemberRepository,
     ):
         self.task_repository = task_repository
-        self.project_repository = project_repository
+        self.project_member_repository = project_member_repository
 
     def execute(self, *, task_id: int, user_id: int):
         task = self.task_repository.get_by_id(task_id)
@@ -17,10 +17,7 @@ class DeleteTaskUseCase:
         if not task:
             raise ValueError("Task not found")
 
-        is_manager = self.project_repository.is_manager(task.project_id, user_id)
-        is_member = self.project_repository.is_member(task.project_id, user_id)
-
-        if not is_manager and not is_member:
+        if not self.project_member_repository.is_member(task.project_id, user_id):
             raise ValueError("User is not allowed to delete this task")
 
         try:

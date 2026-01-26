@@ -6,6 +6,7 @@ from app.application.tasks.filter_tasks import FilterTasksUseCase
 from app.application.tasks.update_task import UpdateTaskUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
+from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.task_repository import SqlAlchemyTaskRepository
 from app.infrastructure.db.repositories.task_status_history import SqlAlchemyTaskStatusHistoryRepository
@@ -30,6 +31,7 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
         project_repository=SqlAlchemyProjectRepository(db),
         user_repository=SqlAlchemyUserRepository(db),
         task_repository=SqlAlchemyTaskRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db)
     )
 
     try:
@@ -68,6 +70,7 @@ def filter_tasks(
 
     use_case = FilterTasksUseCase(
         project_repository=SqlAlchemyProjectRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
         user_repository=SqlAlchemyUserRepository(db),
         task_repository=SqlAlchemyTaskRepository(db),
     )
@@ -107,8 +110,8 @@ def update_task(
     use_case = UpdateTaskUseCase(
     task_repository=SqlAlchemyTaskRepository(db),
     user_repository=SqlAlchemyUserRepository(db),
-    project_repository=SqlAlchemyProjectRepository(db),
     status_history_repository=SqlAlchemyTaskStatusHistoryRepository(db),
+    project_member_repository=SqlAlchemyProjectMemberRepository(db)
 )
 
     try:
@@ -140,7 +143,7 @@ def delete_task(task_id: int,
     
     use_case = DeleteTaskUseCase(
     task_repository=SqlAlchemyTaskRepository(db),
-    project_repository=SqlAlchemyProjectRepository(db),
+    project_member_repository=SqlAlchemyProjectMemberRepository(db),
 )
 
     try:

@@ -1,3 +1,4 @@
+from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
@@ -6,10 +7,12 @@ class FilterTasksUseCase:
     def __init__(
         self,
         project_repository: ProjectRepository,
+        project_member_repository: ProjectMemberRepository,
         user_repository: UserRepository,
         task_repository: TaskRepository,
     ):
         self.project_repository = project_repository
+        self.project_member_repository = project_member_repository
         self.user_repository = user_repository
         self.task_repository = task_repository
 
@@ -30,11 +33,9 @@ class FilterTasksUseCase:
             raise ValueError("Project does not exist")
 
         # VALIDAR QUE EL USUARIO PERTENECE AL PROYECTO
-        is_manager = self.project_repository.is_manager(project_id, current_user_id)
-        is_member = self.project_repository.is_member(project_id, current_user_id)
 
-        if not is_manager and not is_member:
-            raise ValueError("You are not a member of this project")
+        if not self.project_repository.is_member(project_id, current_user_id):
+            raise ValueError("You can't filter the tasks because you are not a member of this project")
 
         # validar usuario asignado si viene
         if assigned_user_id is not None:

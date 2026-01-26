@@ -1,4 +1,6 @@
+from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.project_repository import ProjectRepository
+from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
 from app.application.ports.user_repository import UserRepository
@@ -7,15 +9,17 @@ from app.infrastructure.db.models.task_status_history import TaskStatusHistory
 class UpdateTaskUseCase:
     def __init__(
         self,
-        project_repository: ProjectRepository,
         user_repository: UserRepository,
         task_repository: TaskRepository,
         status_history_repository: TaskStatusHistoryRepository,
+        sprint_repository: SprintRepository,
+        project_member_repository: ProjectMemberRepository
     ):
         self.task_repository = task_repository
         self.user_repository = user_repository
-        self.project_repository = project_repository
         self.status_history_repository = status_history_repository
+        self.sprint_repository = sprint_repository
+        self.project_member_repository = project_member_repository
 
     def execute(
         self,
@@ -29,10 +33,7 @@ class UpdateTaskUseCase:
         if not task:
             raise ValueError("Task not found")
 
-        is_manager = self.project_repository.is_manager(task.project_id, user_id)
-        is_member = self.project_repository.is_member(task.project_id, user_id)
-
-        if not is_manager and not is_member:
+        if not self.project_member_repository.is_member(task.project_id, user_id):
             raise ValueError("User is not a member of the project")
 
         if data.assigned_user_id is not None:
@@ -58,6 +59,9 @@ class UpdateTaskUseCase:
             task.description = data.description
 
         if data.sprint_id is not None:
+            sprint = self.sprint_repository.get_by_id(data.sprint_id)
+            if not sprint:
+                raise ValueError("The sprint doesn't exists")
             task.sprint_id = data.sprint_id
 
         if data.assigned_user_id is not None:
