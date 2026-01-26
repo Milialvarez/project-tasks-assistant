@@ -19,3 +19,12 @@ class SqlAlchemySprintRepository(SprintRepository):
     def get_by_id(self, sprint_id: int):
         sprint = self.db.query(Sprint).filter(Sprint.id == sprint_id).first()
         return sprint
+
+    def update(self, sprint: Sprint):
+        try:
+            self.db.commit()
+            self.db.refresh(sprint)
+            return sprint
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise

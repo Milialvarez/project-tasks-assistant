@@ -1,6 +1,8 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.application.sprints.create_sprint import CreateSprintUseCase
+from app.application.sprints.start_sprint import StartSprintUseCase
 from app.application.sprints.update_sprint import UpdateSprintUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
@@ -65,3 +67,22 @@ def update_sprint(sprint: SprintUpdate,
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.patch("/{sprint_id}/start")
+def start_sprint(
+    sprint_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    use_case = StartSprintUseCase(
+        sprint_repo=SqlAlchemySprintRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+    )
+
+    try:
+        return use_case.execute(
+            sprint_id=sprint_id,
+            user_id=current_user_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

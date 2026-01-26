@@ -9,7 +9,6 @@ class SprintCreate(BaseModel):
     name: str
     description: str | None
     started_at: datetime | None
-    status: SprintStatus = SprintStatus.planned
 
 class SprintUpdate(BaseModel):
     sprint_id: int

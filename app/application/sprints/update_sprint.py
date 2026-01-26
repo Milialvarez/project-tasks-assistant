@@ -1,6 +1,7 @@
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
+from app.infrastructure.db.enums import SprintStatus
 from app.schemas.sprint import SprintUpdate
 
 
@@ -36,15 +37,18 @@ class UpdateSprintUseCase:
         if sprint_data.description is not None:
             sprint.description = sprint_data.description
         
-        if sprint_data.ended_at and sprint.started_at < sprint_data.ended_at:
+        if sprint_data.ended_at:
+            if sprint.started_at and sprint_data.ended_at <= sprint.started_at:
+                raise ValueError("Ending date can't be before starting date")
             sprint.ended_at = sprint_data.ended_at
-        else:
-            raise ValueError("Ending date can't be before starting date")
+
         
-        if sprint_data.status:
-            sprint.status = sprint_data.status
+        if sprint_data.status != SprintStatus.planned and sprint.started_at is None:
+            raise ValueError("You can't modify the status of a sprint before starting it")
+        sprint.status = sprint_data.status
 
         try:
-            return self.sprint_repo.create(sprint)
+            return self.sprint_repo.update(sprint)
         except Exception:
                 raise RuntimeError("Failed to update project")
+
