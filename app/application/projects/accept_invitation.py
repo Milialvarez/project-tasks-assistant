@@ -1,8 +1,8 @@
 from datetime import datetime
 from app.application.ports.project_invitation_repository import ProjectInvitationRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
+from app.domain.entities.project_member import ProjectMember
 from app.domain.enums import InvitationStatus, ProjectRole
-from app.infrastructure.db.models.project_member import ProjectMember
 
 class AcceptProjectInvitationUseCase:
     def __init__(self, invitation_repo: ProjectInvitationRepository, member_repo: ProjectMemberRepository):

@@ -1,6 +1,7 @@
 from app.application.ports.project_repository import ProjectRepository
-from app.infrastructure.db.models.project import Project
+from app.infrastructure.db.models.project import Project as Model
 from app.infrastructure.db.models.project_member import ProjectMember
+from app.infrastructure.db.mappers.project_mapper import to_domain, to_model
 from sqlalchemy.exc import SQLAlchemyError
 
 class SqlAlchemyProjectRepository(ProjectRepository):
@@ -8,63 +9,43 @@ class SqlAlchemyProjectRepository(ProjectRepository):
     def __init__(self, db):
         self.db = db
 
-    def create(self, project: Project):
-        """
-        Creates a project
-        """
-        try:
-            self.db.add(project)
-            self.db.commit()
-            self.db.refresh(project)
-            return project
-        except SQLAlchemyError as e:
-            self.db.rollback()
-            raise
+    def create(self, project):
+        model = to_model(project)
+        self.db.add(model)
+        self.db.commit()
+        self.db.refresh(model)
+        return to_domain(model)
+
+    def update(self, project):
+        model = self.db.query(Model).get(project.id)
+        model.name = project.name
+        model.description = project.description
+        self.db.commit()
+        self.db.refresh(model)
+        return to_domain(model)
 
     def get_projects_for_user(self, user_id: int):
-        """
-        Returns all projects where the user is either
-        creator (manager) or member.
-        """
-        # projects where the user is manager
-        created_projects = (
-            self.db.query(Project)
-            .filter(Project.created_by == user_id)
-        )
-
-        # projects where the user is member
-        member_projects = (
-            self.db.query(Project)
-            .join(ProjectMember, ProjectMember.project_id == Project.id)
+        projects = (
+            self.db.query(Model)
+            .join(ProjectMember, ProjectMember.project_id == Model.id)
             .filter(ProjectMember.user_id == user_id)
+            .all()
         )
-
-        # union to avoid duplicated projects
-        return created_projects.union(member_projects).all()
+        return [to_domain(p) for p in projects]
 
     def get_by_id(self, project_id: int):
-        """
-        Obtains a project by its ID
-        """
-        project = self.db.query(Project).filter(Project.id == project_id).first()
-        return project
+        model = self.db.query(Model).filter(Model.id == project_id).first()
+        return to_domain(model) if model else None
 
-    def delete(self, project: Project):
-        """
-        Deletes a project
-        """
-        try:
-            self.db.delete(project)
-            self.db.commit()
-        except SQLAlchemyError as e:
-            self.db.rollback()
-            raise
+    def delete(self, project):
+        model = self.db.query(Model).get(project.id)
+        self.db.delete(model)
+        self.db.commit()
 
     def is_manager(self, project_id: int, user_id: int) -> bool:
-        project = (
-            self.db.query(Project)
-            .filter(Project.id == project_id, Project.created_by == user_id)
+        return (
+            self.db.query(Model)
+            .filter(Model.id == project_id, Model.created_by == user_id)
             .first()
+            is not None
         )
-        return project is not None
-

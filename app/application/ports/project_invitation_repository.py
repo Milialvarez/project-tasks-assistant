@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from app.infrastructure.db.models.project_invitation import ProjectInvitation
+from app.domain.entities.project_invitation import ProjectInvitation
 
 class ProjectInvitationRepository(ABC):
 

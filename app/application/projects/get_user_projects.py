@@ -1,7 +1,7 @@
 from typing import List
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.user_repository import UserRepository
-from app.infrastructure.db.models.project import Project
+from app.domain.entities.project import Project
 
 
 class GetUserProjectsUseCase:
