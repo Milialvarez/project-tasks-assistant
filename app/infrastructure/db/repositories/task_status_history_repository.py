@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
-from app.infrastructure.db.models.task_status_history import TaskStatusHistory
 from sqlalchemy.exc import SQLAlchemyError
+from app.infrastructure.db.mappers.task_status_history_mapper import to_model, to_domain
+
+from app.domain.entities.task_status_history import TaskStatusHistory
 
 
 class SqlAlchemyTaskStatusHistoryRepository(TaskStatusHistoryRepository):
@@ -11,10 +13,11 @@ class SqlAlchemyTaskStatusHistoryRepository(TaskStatusHistoryRepository):
 
     def create(self, history: TaskStatusHistory):
         try:
-            self.db.add(history)
+            model = to_model(history)
+            self.db.add(model)
             self.db.commit()
-            self.db.refresh(history)
-            return history
+            self.db.refresh(model)
+            return to_domain(model)
         except SQLAlchemyError as e:
             self.db.rollback()
             raise

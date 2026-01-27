@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
-
-from app.infrastructure.db.models.sprint import Sprint
-
-
+from app.domain.entities.sprint import Sprint
 class SprintRepository(ABC):
     @abstractmethod
     def create(self, sprint: Sprint):

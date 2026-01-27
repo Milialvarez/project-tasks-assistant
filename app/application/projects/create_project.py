@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.domain.entities.project import Project
 from app.domain.entities.project_member import ProjectMember
 from app.domain.enums import ProjectRole
@@ -34,6 +35,7 @@ class CreateProjectUseCase:
             name=project.name.strip(),
             description=project.description,
             created_by=created_by,
+            created_at=datetime.now()
         )
 
         # agregar creador como manager

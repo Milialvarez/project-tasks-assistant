@@ -2,7 +2,6 @@ from app.application.ports.project_repository import ProjectRepository
 from app.infrastructure.db.models.project import Project as Model
 from app.infrastructure.db.models.project_member import ProjectMember
 from app.infrastructure.db.mappers.project_mapper import to_domain, to_model
-from sqlalchemy.exc import SQLAlchemyError
 
 class SqlAlchemyProjectRepository(ProjectRepository):
 

@@ -1,8 +1,8 @@
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.entities.sprint import Sprint
 from app.domain.enums import SprintStatus
-from app.infrastructure.db.models.sprint import Sprint
 from app.schemas.sprint import SprintCreate
 
 
@@ -34,6 +34,7 @@ class CreateSprintUseCase:
                 name=sprint.name,
                 description=sprint.description,
                 started_at=sprint.started_at,
+                ended_at=None,
                 status=SprintStatus.planned,
             )
 

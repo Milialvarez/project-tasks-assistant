@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
 from app.application.ports.user_repository import UserRepository
-from app.infrastructure.db.models.user import User
 from sqlalchemy.exc import SQLAlchemyError
+from app.infrastructure.db.mappers.user_mapper import to_model, to_domain
+
+from app.domain.entities.user import User
 
 class SqlAlchemyUserRepository(UserRepository):
 
@@ -21,10 +23,11 @@ class SqlAlchemyUserRepository(UserRepository):
 
     def create(self, user: User) -> User:
         try:
-            self.db.add(user)
+            model = to_model(user)
+            self.db.add(model)
             self.db.commit()
-            self.db.refresh(user)
-            return user
+            self.db.refresh(model)
+            return to_domain(model)
         except SQLAlchemyError as e:
             self.db.rollback()
             raise
@@ -47,4 +50,4 @@ class SqlAlchemyUserRepository(UserRepository):
         Obtains an user by its ID
         """
         user = self.db.query(User).filter(User.id == user_id).first()
-        return user
+        return to_domain(user)

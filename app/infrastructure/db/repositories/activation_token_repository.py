@@ -1,8 +1,7 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
-
-from app.infrastructure.db.models.activation_token import ActivationToken
-
+from app.domain.entities.activation_token import ActivationToken
+from app.infrastructure.db.mappers.activation_token_mapper import to_model
 
 class ActivationTokenRepository:
 
@@ -10,7 +9,8 @@ class ActivationTokenRepository:
         self.db = db
 
     def create(self, token: ActivationToken):
-        self.db.add(token)
+        model = to_model(token)
+        self.db.add(model)
         self.db.commit()
 
     def get_valid_token(self, token_str: str) -> ActivationToken | None:
@@ -24,5 +24,6 @@ class ActivationTokenRepository:
         )
 
     def delete(self, token: ActivationToken):
-        self.db.delete(token)
+        model = to_model(token)
+        self.db.delete(model)
         self.db.commit()

@@ -3,7 +3,6 @@ from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.domain.enums import SprintStatus
 
-
 class StartSprintUseCase:
     def __init__(
         self,

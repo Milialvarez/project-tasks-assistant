@@ -2,13 +2,11 @@ import uuid
 from datetime import datetime, timedelta
 
 from app.application.ports.user_repository import UserRepository
-from app.infrastructure.db.models.activation_token import ActivationToken
-from app.infrastructure.db.models.user import User
+from app.domain.entities.activation_token import ActivationToken
+from app.domain.entities.user import User
 from app.infrastructure.db.repositories.activation_token_repository import ActivationTokenRepository
 from app.infrastructure.services.email_service import EmailService
 from app.infrastructure.services.password_service import hash_password
-
-
 class RegisterUserUseCase:
 
     def __init__(
@@ -33,6 +31,7 @@ class RegisterUserUseCase:
             password_hash=password_hash,
             name=name,
             active=False,
+            created_at=datetime.now()
         )
 
         user = self.user_repo.create(user)

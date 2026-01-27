@@ -1,4 +1,3 @@
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.application.sprints.create_sprint import CreateSprintUseCase
