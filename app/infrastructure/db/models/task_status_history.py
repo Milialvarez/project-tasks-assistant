@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Enum
 from sqlalchemy.sql import func
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import TaskStatus
+from app.domain.enums import TaskStatus
 
 class TaskStatusHistory(Base):
     __tablename__ = "task_status_history"

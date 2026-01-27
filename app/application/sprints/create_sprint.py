@@ -1,7 +1,7 @@
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
-from app.infrastructure.db.enums import SprintStatus
+from app.domain.enums import SprintStatus
 from app.infrastructure.db.models.sprint import Sprint
 from app.schemas.sprint import SprintCreate
 

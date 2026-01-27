@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.application.ports.project_invitation_repository import ProjectInvitationRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
-from app.infrastructure.db.enums import InvitationStatus, ProjectRole
+from app.domain.enums import InvitationStatus, ProjectRole
 from app.infrastructure.db.models.project_member import ProjectMember
 
 class AcceptProjectInvitationUseCase:

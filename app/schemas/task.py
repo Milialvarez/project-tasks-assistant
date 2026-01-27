@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.infrastructure.db.enums import TaskStatus
+from app.domain.enums import TaskStatus
 
 class TaskCreate(BaseModel):
     project_id: int

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.sql import func
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import InvitationStatus
+from app.domain.enums import InvitationStatus
 
 class ProjectInvitation(Base):
     __tablename__ = "projects_invitation"

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, DateTime, ForeignKey, Enum
 from sqlalchemy.sql import func
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import BlockerStatus
+from app.domain.enums import BlockerStatus
 
 class TaskBlocker(Base):
     __tablename__ = "task_blocker"

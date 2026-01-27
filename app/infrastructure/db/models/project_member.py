@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.sql import func
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import ProjectRole
+from app.domain.enums import ProjectRole
 
 class ProjectMember(Base):
     __tablename__ = "project_members"

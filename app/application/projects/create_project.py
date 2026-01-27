@@ -1,6 +1,6 @@
 from app.infrastructure.db.models.project import Project
 from app.infrastructure.db.models.project_member import ProjectMember
-from app.infrastructure.db.enums import ProjectRole
+from app.domain.enums import ProjectRole
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.user_repository import UserRepository

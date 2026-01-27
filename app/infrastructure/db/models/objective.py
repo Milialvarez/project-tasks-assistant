@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, Enum
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import ObjectiveStatus
+from app.domain.enums import ObjectiveStatus
 
 class Objective(Base):
     __tablename__ = "objective"

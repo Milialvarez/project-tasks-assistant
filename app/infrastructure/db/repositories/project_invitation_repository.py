@@ -1,6 +1,6 @@
 from app.application.ports.project_invitation_repository import ProjectInvitationRepository
 from app.infrastructure.db.models.project_invitation import ProjectInvitation
-from app.infrastructure.db.enums import InvitationStatus
+from app.domain.enums import InvitationStatus
 
 class SqlAlchemyProjectInvitationRepository(ProjectInvitationRepository):
 

@@ -4,7 +4,7 @@ from app.application.ports.project_member_repository import ProjectMemberReposit
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.user_repository import UserRepository
 from app.infrastructure.db.models.project_invitation import ProjectInvitation
-from app.infrastructure.db.enums import InvitationStatus
+from app.domain.enums import InvitationStatus
 from app.infrastructure.services.email_service import EmailService
 
 class InviteProjectMemberUseCase:

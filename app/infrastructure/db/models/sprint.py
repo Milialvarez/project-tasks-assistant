@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum
 from app.infrastructure.db.base import Base
-from app.infrastructure.db.enums import SprintStatus
+from app.domain.enums import SprintStatus
 
 class Sprint(Base):
     __tablename__ = "sprint"

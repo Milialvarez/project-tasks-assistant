@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.infrastructure.db.enums import SprintStatus
+from app.domain.enums import SprintStatus
 
 
 class SprintCreate(BaseModel):
