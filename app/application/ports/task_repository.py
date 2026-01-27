@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from app.infrastructure.db.models.task import Task
+from typing import List, Optional
+from app.domain.entities.task import Task
 
 class TaskRepository(ABC):
 
@@ -11,12 +12,11 @@ class TaskRepository(ABC):
     def filter(
         self,
         *,
-        project_id: int | None,
-        sprint_id: int | None,
-        assigned_user_id: int | None,
-    ) -> list[Task]:
+        project_id: int,
+        sprint_id: Optional[int],
+        assigned_user_id: Optional[int],
+    ) -> List[Task]:
         pass
-
     @abstractmethod
     def get_by_id(self, task_id: int) -> Task | None:
         pass
@@ -26,5 +26,5 @@ class TaskRepository(ABC):
         pass
 
     @abstractmethod
-    def delete(self, task: Task) -> None:
+    def delete(self, task_id: int) -> None:
         pass

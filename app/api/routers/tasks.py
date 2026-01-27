@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
+from app.infrastructure.db.repositories.sprint_repository import SqlAlchemySprintRepository
 from app.infrastructure.db.repositories.task_repository import SqlAlchemyTaskRepository
 from app.infrastructure.db.repositories.task_status_history_repository import SqlAlchemyTaskStatusHistoryRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
@@ -18,7 +19,10 @@ from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 @router.post("/", response_model=TaskResponse, status_code=201)
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+def create_task(
+    task: TaskCreate,
+    db: Session = Depends(get_db),
+):
     """
     Docstring for create_task
     
@@ -27,22 +31,19 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
     :param db: db session available to execute the operation
     :type db: Session
     """
-
     use_case = CreateTaskUseCase(
         project_repository=SqlAlchemyProjectRepository(db),
+        sprint_repository=SqlAlchemySprintRepository(db),
         user_repository=SqlAlchemyUserRepository(db),
         task_repository=SqlAlchemyTaskRepository(db),
-        project_member_repository=SqlAlchemyProjectMemberRepository(db)
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
     )
 
     try:
-        created_task = use_case.execute(task=task)
-        return created_task
+        return use_case.execute(task=task)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
-    
+
     
 @router.get("/", response_model=list[TaskResponse])
 def filter_tasks(

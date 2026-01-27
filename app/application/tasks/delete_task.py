@@ -20,7 +20,4 @@ class DeleteTaskUseCase:
         if not self.project_member_repository.is_member(task.project_id, user_id):
             raise ValueError("User is not allowed to delete this task")
 
-        try:
-            self.task_repository.delete(task)
-        except Exception:
-                raise RuntimeError("Failed to create sprint")
+        self.task_repository.delete(task_id)
