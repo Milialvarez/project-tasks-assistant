@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 from app.application.tasks.create_task import CreateTaskUseCase
 from app.application.tasks.delete_task import DeleteTaskUseCase
 from app.application.tasks.filter_tasks import FilterTasksUseCase
+from app.application.tasks.get_status_history import GetStatusHistory
 from app.application.tasks.update_task import UpdateTaskUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.task_repository import SqlAlchemyTaskRepository
-from app.infrastructure.db.repositories.task_status_history import SqlAlchemyTaskStatusHistoryRepository
+from app.infrastructure.db.repositories.task_status_history_repository import SqlAlchemyTaskStatusHistoryRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 
@@ -153,3 +154,33 @@ def delete_task(task_id: int,
         raise HTTPException(status_code=404, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.get('/{task_id}/history')
+def get_status_history(task_id: int, 
+                       db: Session = Depends(get_db), 
+                       current_user_id: int = Depends(get_current_user_id)):
+    """
+    Docstring for get_status_history
+    
+    :param task_id: ID of the task to filter
+    :type task_id: int
+    :param db: session available to execute the operation
+    :type db: Session
+    :param current_user_id: User that wants to view the status history
+    :type current_user_id: int
+    """
+
+    use_case = GetStatusHistory(
+        task_repo=SqlAlchemyTaskRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+        task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
+    )
+
+
+    try:
+        return use_case.execute(task_id, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    

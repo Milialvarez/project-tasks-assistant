@@ -18,3 +18,11 @@ class SqlAlchemyTaskStatusHistoryRepository(TaskStatusHistoryRepository):
         except SQLAlchemyError as e:
             self.db.rollback()
             raise
+
+    def get_by_task_id(self, task_id: int) -> list[TaskStatusHistory]:
+        return (
+            self.db.query(TaskStatusHistory)
+            .filter(TaskStatusHistory.task_id == task_id)
+            .order_by(TaskStatusHistory.created_at.asc())
+            .all()
+        )
