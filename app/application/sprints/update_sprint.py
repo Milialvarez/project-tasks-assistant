@@ -41,11 +41,7 @@ class UpdateSprintUseCase:
             if sprint.started_at and sprint_data.ended_at <= sprint.started_at:
                 raise ValueError("Ending date can't be before starting date")
             sprint.ended_at = sprint_data.ended_at
-
-        
-        if sprint_data.status != SprintStatus.planned and sprint.started_at is None:
-            raise ValueError("You can't modify the status of a sprint before starting it")
-        sprint.status = sprint_data.status
+            sprint.status = SprintStatus.completed
 
         try:
             return self.sprint_repo.update(sprint)

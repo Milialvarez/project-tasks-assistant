@@ -15,4 +15,3 @@ class SprintUpdate(BaseModel):
     name: str | None
     description: str | None
     ended_at: datetime | None
-    status: SprintStatus | None
