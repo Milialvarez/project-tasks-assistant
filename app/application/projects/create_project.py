@@ -38,15 +38,15 @@ class CreateProjectUseCase:
             created_at=datetime.now()
         )
 
-        # agregar creador como manager
-        member = ProjectMember(
-            project_id=project.id,
-            user_id=created_by,
-            role=ProjectRole.manager,
-        )
-
         try:
             project = self.project_repository.create(project)
+
+            # agregar creador como manager
+            member = ProjectMember(
+                project_id=project.id,
+                user_id=created_by,
+                role=ProjectRole.manager,
+            )
             self.project_member_repository.add_member(member)
         except Exception:
                 raise RuntimeError("Failed to create project")

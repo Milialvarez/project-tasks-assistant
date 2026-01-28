@@ -5,7 +5,7 @@ class TaskStatusHistory:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         task_id: int,
         previous_status: TaskStatus,
         new_status: TaskStatus,

@@ -6,7 +6,7 @@ class Task:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         project_id: int,
         sprint_id: int | None,
         title: str,

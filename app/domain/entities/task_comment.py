@@ -4,7 +4,7 @@ class TaskComment:
     def __init__(
         self,
         *,
-        id: int | None,
+       id: int | None = None,
         task_id: int,
         user_id: int,
         content: str,

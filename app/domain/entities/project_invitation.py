@@ -6,7 +6,7 @@ class ProjectInvitation:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         project_id: int,
         invited_user_id: int,
         status: InvitationStatus,

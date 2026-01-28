@@ -4,7 +4,7 @@ class Project:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         name: str,
         description: str | None,
         created_by: int,

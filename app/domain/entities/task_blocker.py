@@ -5,7 +5,7 @@ class TaskBlocker:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         task_id: int,
         cause: str,
         created_by: int,
