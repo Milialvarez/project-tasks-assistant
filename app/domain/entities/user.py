@@ -4,12 +4,12 @@ class User:
     def __init__(
         self,
         *,
-        id: int | None,
+        id: int | None = None,
         email: str,
         password_hash: str,
         name: str,
         active: bool,
-        created_at: datetime | None = None,
+        created_at: datetime,
     ):
         self.id = id
         self.email = email

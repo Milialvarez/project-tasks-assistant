@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -15,11 +16,11 @@ from app.infrastructure.db.repositories.project_member_repository import SqlAlch
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 from app.infrastructure.services.email_service import EmailService
-from app.schemas.project import ProjectCreate, ProjectUpdate
+from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
-@router.post("/")
+@router.post("/", response_model=ProjectResponse, status_code=201)
 def create_project(
     project: ProjectCreate,
     db: Session = Depends(get_db),
@@ -52,7 +53,8 @@ def create_project(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get("/user/{user_id}")
+@router.get("/user/{user_id}", response_model=List[ProjectResponse],
+    status_code=200)
 def get_user_projects(
     user_id: int,
     db: Session = Depends(get_db),
@@ -75,7 +77,7 @@ def get_user_projects(
 
     return use_case.execute(user_id)
 
-@router.put("/{project_id}")
+@router.put("/{project_id}", response_model=ProjectResponse, status_code=201)
 def update_project(
     project: ProjectUpdate,
     db: Session = Depends(get_db),
