@@ -8,10 +8,9 @@ class SprintCreate(BaseModel):
     project_id: int
     name: str
     description: str | None
-    started_at: datetime | None
 
 class SprintUpdate(BaseModel):
     sprint_id: int
     name: str | None
-    description: str | None
-    ended_at: datetime | None
+    description: str | None = None
+    ended_at: datetime | None = None

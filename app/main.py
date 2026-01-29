@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.routers import auth, projects, users
+from app.api.routers import auth, projects, sprints, tasks, users
 
 app = FastAPI(
     title="Project & Tasks Assistant API",
@@ -11,6 +11,8 @@ app = FastAPI(
 app.include_router(projects.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(sprints.router)
+app.include_router(tasks.router)
 
 @app.get("/")
 def health_check():

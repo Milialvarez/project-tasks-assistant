@@ -36,7 +36,7 @@ def create_sprint(sprint: SprintCreate,
     )
 
     try:
-        return use_case.execute(sprint, current_user_id)
+        return use_case.execute(sprint=sprint, user_id=current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
@@ -61,7 +61,7 @@ def update_sprint(sprint: SprintUpdate,
         user_repo=SqlAlchemyUserRepository(db)
         )
     try:
-        return use_case.execute(sprint, current_user_id)
+        return use_case.execute(sprint_data=sprint, user_id=current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:

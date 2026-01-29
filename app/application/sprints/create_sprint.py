@@ -33,7 +33,7 @@ class CreateSprintUseCase:
                 project_id=sprint.project_id,
                 name=sprint.name,
                 description=sprint.description,
-                started_at=sprint.started_at,
+                started_at=None,
                 ended_at=None,
                 status=SprintStatus.planned,
             )
