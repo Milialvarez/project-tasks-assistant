@@ -18,3 +18,7 @@ class TaskBlockerResponse(BaseModel):
 
     class Config:
         from_attributes = True  
+
+class BlockerUpdate(BaseModel):
+    cause: str | None = None
+    status: BlockerStatus | None = None

@@ -9,6 +9,7 @@ from app.application.tasks.get_blockers import GetTaskBlockersUseCase
 from app.application.tasks.get_by_id import GetById
 from app.application.tasks.get_comments import GetComments
 from app.application.tasks.get_status_history import GetStatusHistory
+from app.application.tasks.update_blocker import UpdateBlockerUseCase
 from app.application.tasks.update_task import UpdateTaskUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
@@ -21,7 +22,7 @@ from app.infrastructure.db.repositories.task_comment_repository import SqlAlchem
 from app.infrastructure.db.repositories.task_repository import SqlAlchemyTaskRepository
 from app.infrastructure.db.repositories.task_status_history_repository import SqlAlchemyTaskStatusHistoryRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
-from app.schemas.blocker import TaskBlockerCreate, TaskBlockerResponse
+from app.schemas.blocker import BlockerUpdate, TaskBlockerCreate, TaskBlockerResponse
 from app.schemas.comment import CommentCreate, CommentResponse
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 
@@ -295,6 +296,23 @@ def get_by_id(task_id: int,
                      project_member_repo=SqlAlchemyProjectMemberRepository(db))
     try:
         return use_case.execute(task_id=task_id, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.put("/blocker/{blocker_id}", response_model=TaskBlockerResponse, status_code=201)
+def update_blocker(blocker_id: int,
+                   blocker: BlockerUpdate,
+                   db: Session = Depends(get_db), 
+                   current_user_id: int = Depends(get_current_user_id)):
+    use_case=UpdateBlockerUseCase(blocker_repo=SqlAlchemyBlockerRepository(db),
+                                  task_repo=SqlAlchemyTaskRepository(db),
+                                  task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
+                                  user_repo=SqlAlchemyUserRepository(db),
+                                  project_member_repo=SqlAlchemyProjectMemberRepository(db))
+    try:
+        return use_case.execute(blocker_id=blocker_id, blocker_data=blocker, user_id=current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:

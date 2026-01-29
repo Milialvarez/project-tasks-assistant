@@ -35,3 +35,25 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
         blockers = query.all()
 
         return [to_domain(model) for model in blockers]
+    
+    def get_by_id(self, blocker_id:int) -> TaskBlocker | None:
+        model = self.db.query(TaskBlockerModel).filter(TaskBlockerModel.id==blocker_id).first()
+        return to_domain(model) if model else None
+    
+    def update(self, blocker: TaskBlocker) -> TaskBlocker:
+        model = self.db.query(TaskBlockerModel).get(blocker.id)
+        if not model:
+            raise ValueError("Blocker not found")
+
+        try:
+            model.cause = blocker.cause
+            model.status = blocker.status
+            model.solved_at = blocker.solved_at
+
+            self.db.commit()
+            self.db.refresh(model)
+            return to_domain(model)
+
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise
