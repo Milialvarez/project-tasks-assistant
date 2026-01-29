@@ -17,6 +17,7 @@ from app.infrastructure.db.repositories.project_repository import SqlAlchemyProj
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
 from app.infrastructure.services.email_service import EmailService
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.schemas.project_invitation import ProjectInvitationCreate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -144,7 +145,7 @@ def delete_project(
 @router.post("/{project_id}/invite", status_code=201)
 def invite_project_member(
     project_id: int,
-    invited_email: str,
+    data: ProjectInvitationCreate,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
 ):
@@ -156,18 +157,17 @@ def invite_project_member(
         email_service=EmailService(),
     )
 
-    try:
-        invitation = use_case.execute(
-            project_id=project_id,
-            invited_email=invited_email,
-            current_user_id=current_user_id,
-        )
-        return {
-            "message": "Invitation sent successfully",
-            "invitation_id": invitation.id,
-        }
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    invitation = use_case.execute(
+        project_id=project_id,
+        invited_email=data.invited_email,
+        current_user_id=current_user_id,
+    )
+
+    return {
+        "message": "Invitation sent successfully",
+        "invitation_id": invitation.id,
+    }
+
 
 @router.post("/invitations/{invitation_id}/accept")
 def accept_project_invitation(
