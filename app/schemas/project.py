@@ -10,7 +10,6 @@ class ProjectCreate(BaseModel):
     description: str | None
 
 class ProjectUpdate(BaseModel):
-    project_id: int
     name: str | None
     description: str | None
 

@@ -8,15 +8,16 @@ class UpdateProjectUseCase:
     def execute(
         self,
         *,
+        project_id: int,
         project_data: ProjectUpdate,
         user_id: int,
     ):
-        project = self.project_repository.get_by_id(project_data.project_id)
+        project = self.project_repository.get_by_id(project_id=project_id)
 
         if not project:
             raise ValueError("Project not found")
 
-        if not self.project_repository.is_manager(project_data.project_id, user_id):
+        if not self.project_repository.is_manager(project_id=project_id, user_id=user_id):
             raise ValueError("You are not allowed to update this project")
 
         if project_data.name is not None:
@@ -28,6 +29,6 @@ class UpdateProjectUseCase:
             project.description = project_data.description
 
         try:
-            return self.project_repository.create(project)
+            return self.project_repository.update(project)
         except Exception:
                 raise RuntimeError("Failed to update project")

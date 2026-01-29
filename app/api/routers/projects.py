@@ -53,11 +53,11 @@ def create_project(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.get("/user/{user_id}", response_model=List[ProjectResponse],
+@router.get("/me", response_model=List[ProjectResponse],
     status_code=200)
 def get_user_projects(
-    user_id: int,
     db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id)
 ):
     """
     Get all the projects of a user
@@ -75,10 +75,11 @@ def get_user_projects(
         user_repository=user_repo,
     )
 
-    return use_case.execute(user_id)
+    return use_case.execute(current_user_id)
 
 @router.put("/{project_id}", response_model=ProjectResponse, status_code=201)
 def update_project(
+    project_id: int,
     project: ProjectUpdate,
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
@@ -101,7 +102,8 @@ def update_project(
 
     try:
         return use_case.execute(
-            project=project,
+            project_id=project_id,
+            project_data=project,
             user_id=current_user_id,
         )
     except ValueError as e:
