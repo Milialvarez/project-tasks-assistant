@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.application.tasks.create_blocker import CreateBlocker
+from app.application.tasks.create_comment import CreateComment
 from app.application.tasks.create_task import CreateTaskUseCase
 from app.application.tasks.delete_task import DeleteTaskUseCase
 from app.application.tasks.filter_tasks import FilterTasksUseCase
@@ -10,9 +12,13 @@ from app.dependencies.auth import get_current_user_id
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.sprint_repository import SqlAlchemySprintRepository
+from app.infrastructure.db.repositories.task_blocker_repository import SqlAlchemyBlockerRepository
+from app.infrastructure.db.repositories.task_comment_repository import SqlAlchemyCommentRepository
 from app.infrastructure.db.repositories.task_repository import SqlAlchemyTaskRepository
 from app.infrastructure.db.repositories.task_status_history_repository import SqlAlchemyTaskStatusHistoryRepository
 from app.infrastructure.db.repositories.user_repository import SqlAlchemyUserRepository
+from app.schemas.blocker import TaskBlockerCreate, TaskBlockerResponse
+from app.schemas.comment import CommentCreate, CommentResponse
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 
 
@@ -185,3 +191,54 @@ def get_status_history(task_id: int,
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
     
+@router.post("/{task_id}/comment", response_model=CommentResponse, status_code=201)
+def create_task_comment(task_id: int,
+                        comment: CommentCreate, 
+                        db: Session = Depends(get_db), 
+                        current_user_id: int = Depends(get_current_user_id)):
+    """
+    Docstring for create_task_comment
+    
+    :param comment: comment data to create the instance
+    :type comment: CommentCreate
+    :param db: session available to execute the operation
+    :type db: Session
+    :param current_user_id: ID of the user that wants to execute the operation
+    :type current_user_id: int
+    """
+    use_case=CreateComment(user_repository=SqlAlchemyUserRepository(db),
+                           task_repository=SqlAlchemyTaskRepository(db),
+                           project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                           comment_repository=SqlAlchemyCommentRepository(db))
+    try:
+        return use_case.execute(task_id=task_id, comment_data=comment, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.post("/{task_id}/blocker", response_model=TaskBlockerResponse)
+def create_task_blocker(task_id: int, 
+                        blocker: TaskBlockerCreate,
+                        db: Session = Depends(get_db), 
+                        current_user_id: int = Depends(get_current_user_id)):
+    """
+    Docstring for create_task_blocker
+    
+    :param task_id: ID of the task needed to add the blocker
+    :type task_id: int
+    :param db: session available to execute the operation
+    :type db: Session
+    :param current_user_id: ID of the user that wants to add the blocker
+    :type current_user_id: int
+    """
+    use_case=CreateBlocker(user_repository=SqlAlchemyUserRepository(db),
+                           task_repository=SqlAlchemyTaskRepository(db),
+                           project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                           blocker_repository=SqlAlchemyBlockerRepository(db))
+    try:
+        return use_case.execute(task_id=task_id, blocker_data=blocker, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
