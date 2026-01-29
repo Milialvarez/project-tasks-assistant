@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.application.tasks.create_blocker import CreateBlocker
 from app.application.tasks.create_comment import CreateComment
 from app.application.tasks.create_task import CreateTaskUseCase
 from app.application.tasks.delete_task import DeleteTaskUseCase
 from app.application.tasks.filter_tasks import FilterTasksUseCase
+from app.application.tasks.get_blockers import GetTaskBlockersUseCase
+from app.application.tasks.get_comments import GetComments
 from app.application.tasks.get_status_history import GetStatusHistory
 from app.application.tasks.update_task import UpdateTaskUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
+from app.domain.enums import BlockerStatus
 from app.infrastructure.db.repositories.project_member_repository import SqlAlchemyProjectMemberRepository
 from app.infrastructure.db.repositories.project_repository import SqlAlchemyProjectRepository
 from app.infrastructure.db.repositories.sprint_repository import SqlAlchemySprintRepository
@@ -238,6 +241,43 @@ def create_task_blocker(task_id: int,
                            blocker_repository=SqlAlchemyBlockerRepository(db))
     try:
         return use_case.execute(task_id=task_id, blocker_data=blocker, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.get("/{task_id}/comments", response_model=list[CommentResponse], status_code=200)
+def get_task_comments(task_id: int, 
+                      db: Session = Depends(get_db), 
+                      current_user_id: int=Depends(get_current_user_id)):
+    use_case=GetComments(task_repo=SqlAlchemyTaskRepository(db),
+                         project_member_repo=SqlAlchemyProjectMemberRepository(db),
+                         comments_repo=SqlAlchemyCommentRepository(db),
+                         user_repo=SqlAlchemyUserRepository(db))
+    
+    try:
+        return use_case.execute(task_id=task_id, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.get(
+    "/{task_id}/blockers",
+    response_model=list[TaskBlockerResponse], status_code=200
+)
+def get_task_blockers(
+    task_id: int,
+    status: BlockerStatus | None = Query(default=None),
+    db: Session = Depends(get_db),
+    current_user_id=Depends(get_current_user_id),
+):
+    use_case = GetTaskBlockersUseCase(blocker_repo=SqlAlchemyBlockerRepository(db),
+                                      task_repo=SqlAlchemyTaskRepository(db),
+                                      project_member_repo=SqlAlchemyProjectMemberRepository(db),
+                                      user_repo=SqlAlchemyUserRepository(db))
+    try:
+        return use_case.execute(task_id=task_id, status=status, user_id=current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:

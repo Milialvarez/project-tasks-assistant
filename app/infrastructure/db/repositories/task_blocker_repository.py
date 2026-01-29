@@ -1,9 +1,12 @@
+from typing import List
 from app.application.ports.task_blocker_repository import BlockerRepository
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.domain.entities.task_blocker import TaskBlocker
+from app.domain.enums import BlockerStatus
 from app.infrastructure.db.mappers.task_blocker_mapper import to_domain, to_model
+from app.infrastructure.db.models.task_blocker import TaskBlocker as TaskBlockerModel
 
 class SqlAlchemyBlockerRepository(BlockerRepository):
     def __init__(self, db: Session):
@@ -19,3 +22,16 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
         except SQLAlchemyError:
             self.db.rollback()
             raise
+
+    def get_by_task_id(self, *, task_id: int, status: BlockerStatus | None = None) -> List[TaskBlocker]:
+
+        query = self.db.query(TaskBlockerModel).filter(
+            TaskBlockerModel.task_id == task_id
+        )
+
+        if status is not None:
+            query = query.filter(TaskBlockerModel.status == status)
+
+        blockers = query.all()
+
+        return [to_domain(model) for model in blockers]
