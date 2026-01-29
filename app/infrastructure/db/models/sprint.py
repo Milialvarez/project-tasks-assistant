@@ -6,7 +6,7 @@ class Sprint(Base):
     __tablename__ = "sprint"
 
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text)
     started_at = Column(DateTime)

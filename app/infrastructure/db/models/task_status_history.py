@@ -7,7 +7,7 @@ class TaskStatusHistory(Base):
     __tablename__ = "task_status_history"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), nullable=False)
     previous_status = Column(Enum(TaskStatus), nullable=False)
     new_status = Column(Enum(TaskStatus), nullable=False)
     changed_by = Column(Integer, ForeignKey("users.id"), nullable=False)

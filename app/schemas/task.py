@@ -5,10 +5,10 @@ from app.domain.enums import TaskStatus
 
 class TaskCreate(BaseModel):
     project_id: int
-    sprint_id: int | None
+    sprint_id: int | None = None
     title: str
-    description: str | None
-    assigned_user_id: int | None
+    description: str | None = None
+    assigned_user_id: int | None = None
     current_status: TaskStatus = TaskStatus.pending
 
 class TaskResponse(BaseModel):

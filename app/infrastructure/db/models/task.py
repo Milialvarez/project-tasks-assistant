@@ -7,8 +7,8 @@ class Task(Base):
     __tablename__ = "task"
 
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False) # a task always belongs to a project
-    sprint_id = Column(Integer, ForeignKey("sprint.id")) # not necessary a task belong to a sprint
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False) # a task always belongs to a project
+    sprint_id = Column(Integer, ForeignKey("sprint.id", ondelete="CASCADE")) # not necessary a task belong to a sprint
     title = Column(String(150), nullable=False)
     description = Column(Text)
     assigned_user_id = Column(Integer, ForeignKey("users.id"))

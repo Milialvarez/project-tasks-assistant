@@ -7,7 +7,7 @@ class TaskBlocker(Base):
     __tablename__ = "task_blocker"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), nullable=False)
     cause = Column(Text, nullable=False)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     status = Column(Enum(BlockerStatus), nullable=False)

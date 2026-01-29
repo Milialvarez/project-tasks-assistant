@@ -6,7 +6,7 @@ class TaskComment(Base):
     __tablename__ = "task_comment"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("task.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("task.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())

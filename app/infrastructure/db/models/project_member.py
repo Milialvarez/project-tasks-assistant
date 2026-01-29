@@ -10,7 +10,7 @@ class ProjectMember(Base):
     )
 
     id = Column(Integer, primary_key=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     role = Column(Enum(ProjectRole), nullable=False)
     joined_at = Column(DateTime, nullable=False, server_default=func.now())
