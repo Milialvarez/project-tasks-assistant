@@ -50,3 +50,10 @@ class SqlAlchemySprintRepository(SprintRepository):
             self.db.rollback()
             raise
 
+    def get_sprints_by_project_id(self, project_id):
+        sprints = (
+            self.db.query(SprintModel)
+            .filter(SprintModel.project_id == project_id)
+            .all()
+        )
+        return [to_domain(s) for s in sprints]

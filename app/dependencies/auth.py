@@ -25,9 +25,9 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
 
         user_id = payload.get("sub")
         if not user_id:
-            raise HTTPException(status_code=HTTPException.HTTP_401_UNAUTHORIZED)
+            raise HTTPException(detail="user doesn't exists", status_code=404)
 
         return int(user_id)
 
     except JWTError:
-        raise HTTPException(status_code=HTTPException.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(detail="user don't authenticated", status_code=401)
