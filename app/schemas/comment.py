@@ -10,6 +10,7 @@ class CommentResponse(BaseModel):
     user_id: int
     content: str
     created_at: datetime
+    edited_at: datetime | None
     
     class Config:
         from_attributes = True  

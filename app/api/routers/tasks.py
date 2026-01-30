@@ -10,6 +10,7 @@ from app.application.tasks.get_by_id import GetById
 from app.application.tasks.get_comments import GetComments
 from app.application.tasks.get_status_history import GetStatusHistory
 from app.application.tasks.update_blocker import UpdateBlockerUseCase
+from app.application.tasks.update_comment import UpdateComment
 from app.application.tasks.update_task import UpdateTaskUseCase
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
@@ -313,6 +314,20 @@ def update_blocker(blocker_id: int,
                                   project_member_repo=SqlAlchemyProjectMemberRepository(db))
     try:
         return use_case.execute(blocker_id=blocker_id, blocker_data=blocker, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.put("/comment/{comment_id}", response_model=CommentResponse, status_code=200)
+def update_comment(comment_id: int, 
+                   comment:CommentCreate, 
+                   db:Session=Depends(get_db), 
+                   current_user_id: int = Depends(get_current_user_id)):
+    use_case=UpdateComment(comment_repo=SqlAlchemyCommentRepository(db),
+                           user_repo=SqlAlchemyUserRepository(db))
+    try:
+        return use_case.execute(comment_id=comment_id, blocker_data=comment, user_id=current_user_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:

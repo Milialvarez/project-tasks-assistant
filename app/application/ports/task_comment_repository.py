@@ -12,3 +12,11 @@ class CommentRepository(ABC):
     @abstractmethod
     def get_comments(self, task_id: int)->List[TaskComment]:
         pass
+
+    @abstractmethod
+    def get_by_id(self, comment_id: int)->TaskComment | None:
+        pass
+
+    @abstractmethod
+    def update(self, comment:TaskComment)->TaskComment:
+        pass

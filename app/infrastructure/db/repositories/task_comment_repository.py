@@ -26,3 +26,24 @@ class SqlAlchemyCommentRepository(CommentRepository):
         query = self.db.query(TaskCommentModel)
         query = query.filter(TaskCommentModel.task_id == task_id)
         return [to_domain(model) for model in query.all()]
+    
+    def get_by_id(self, comment_id: int)->TaskComment | None:
+        query = self.db.query(TaskCommentModel)
+        query = query.filter(TaskCommentModel.id == comment_id)
+        return [to_domain(model) for model in query.all()]
+    
+    def update(self, comment:TaskComment)->TaskComment:
+        model = self.db.query(TaskCommentModel).get(comment.id)
+        if not model:
+            raise ValueError("Task Comment not found")
+
+        model.content = comment.content
+        model.edited_at = comment.edited_at
+
+        try:
+            self.db.commit()
+            self.db.refresh(model)
+            return to_domain(model)
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise
