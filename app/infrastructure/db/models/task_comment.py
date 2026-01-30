@@ -10,3 +10,4 @@ class TaskComment(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
+    edited_at = Column(DateTime, nullable=True)
