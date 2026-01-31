@@ -290,6 +290,33 @@ def get_task_blockers(
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
     
+@router.get("/archived", response_model=list[TaskResponse], status_code=200)
+def get_archived_tasks(project_id: int,
+                       sprint_id: int | None = None, 
+                       db:Session = Depends(get_db),
+                       current_user_id: int = Depends(get_current_user_id)):
+    """
+    Docstring for get_archived_tasks
+    
+    :param project_id: Param to filter the tasks by the project they belong to
+    :type project_id: int
+    :param sprint_id: Optional param to filter tasks that belongs to a specified sprint
+    :type sprint_id: int | None
+    :param db: session available to execute the operation
+    :type db: Session
+    :param current_user_id: ID of the user that wants to execute the operation
+    :type current_user_id: int
+    """
+    use_case=GetArchivedTask(task_repo=SqlAlchemyTaskRepository(db),
+                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
+                             )
+    try:
+        return use_case.execute(project_id, sprint_id, current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
 @router.get("/{task_id}", response_model=TaskResponse, status_code=200)
 def get_by_id(task_id: int,
               db: Session = Depends(get_db),
@@ -340,7 +367,7 @@ def delete_comment(comment_id: int,
                    db: Session = Depends(get_db),
                    current_user_id: int = Depends(get_current_user_id)):
     use_case=DeleteComment(comment_repo=SqlAlchemyCommentRepository(db),
-                           user_repo=SqlAlchemyCommentRepository(db))
+                           user_repo=SqlAlchemyUserRepository(db))
     try:
         use_case.execute(comment_id, current_user_id)
         return {"message": "Task Comment deleted successfully"}
@@ -349,25 +376,3 @@ def delete_comment(comment_id: int,
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
     
-@router.get("/archived", response_model=list[TaskResponse], status_code=200)
-def get_archived_tasks(project_id: int,
-                       sprint_id: int | None = None, 
-                       db:Session = Depends(get_db),
-                       current_user_id: int = Depends(get_current_user_id)):
-    """
-    Docstring for get_archived_tasks
-    
-    :param project_id: Param to filter the tasks by the project they belong to
-    :type project_id: int
-    :param sprint_id: Optional param to filter tasks that belongs to a specified sprint
-    :type sprint_id: int | None
-    :param db: session available to execute the operation
-    :type db: Session
-    :param current_user_id: ID of the user that wants to execute the operation
-    :type current_user_id: int
-    """
-    use_case=GetArchivedTask(task_repo=SqlAlchemyTaskRepository(db),
-                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                             )
-    
-    return use_case.execute(project_id, sprint_id, current_user_id)

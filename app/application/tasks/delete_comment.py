@@ -1,6 +1,4 @@
-from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.task_comment_repository import CommentRepository
-from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
 
 
@@ -15,6 +13,7 @@ class DeleteComment:
         self.user_repo=user_repo
 
     def execute(self, comment_id: int, user_id: int):
+        
         comment = self.comment_repo.get_by_id(comment_id)
 
         if not comment:

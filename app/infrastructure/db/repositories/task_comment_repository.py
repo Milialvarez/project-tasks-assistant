@@ -28,9 +28,8 @@ class SqlAlchemyCommentRepository(CommentRepository):
         return [to_domain(model) for model in query.all()]
     
     def get_by_id(self, comment_id: int)->TaskComment | None:
-        query = self.db.query(TaskCommentModel)
-        query = query.filter(TaskCommentModel.id == comment_id)
-        return [to_domain(model) for model in query.all()]
+        model = self.db.query(TaskCommentModel).filter(TaskCommentModel.id == comment_id).first()
+        return to_domain(model) if model else None
     
     def update(self, comment:TaskComment)->TaskComment:
         model = self.db.query(TaskCommentModel).get(comment.id)
