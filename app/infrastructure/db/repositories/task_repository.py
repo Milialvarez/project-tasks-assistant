@@ -1,3 +1,4 @@
+from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,10 +27,11 @@ class SqlAlchemyTaskRepository(TaskRepository):
         model = self.db.query(TaskModel).filter(TaskModel.id == task_id).first()
         return to_domain(model) if model else None
 
-    def filter(self, *, project_id, sprint_id, assigned_user_id):
+    def filter(self, *, project_id, sprint_id, assigned_user_id)-> List[Task]:
         query = self.db.query(TaskModel)
 
         query = query.filter(TaskModel.project_id == project_id)
+        query= query.filter(TaskModel.archived == False)
 
         if sprint_id is not None:
             query = query.filter(TaskModel.sprint_id == sprint_id)
@@ -70,3 +72,14 @@ class SqlAlchemyTaskRepository(TaskRepository):
         except SQLAlchemyError:
             self.db.rollback()
             raise
+
+    def get_archived(self, project_id: int, sprint_id: int | None) -> List[Task]:
+        query = self.db.query(TaskModel)
+
+        query = query.filter(TaskModel.project_id == project_id)
+        query= query.filter(TaskModel.archived == True)
+
+        if sprint_id is not None:
+            query = query.filter(TaskModel.sprint_id == sprint_id)
+
+        return [to_domain(model) for model in query.all()]

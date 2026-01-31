@@ -6,6 +6,7 @@ from app.application.tasks.create_task import CreateTaskUseCase
 from app.application.tasks.delete_comment import DeleteComment
 from app.application.tasks.delete_task import DeleteTaskUseCase
 from app.application.tasks.filter_tasks import FilterTasksUseCase
+from app.application.tasks.get_archived_tasks import GetArchivedTask
 from app.application.tasks.get_blockers import GetTaskBlockersUseCase
 from app.application.tasks.get_by_id import GetById
 from app.application.tasks.get_comments import GetComments
@@ -347,3 +348,26 @@ def delete_comment(comment_id: int,
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.get("/archived", response_model=list[TaskResponse], status_code=200)
+def get_archived_tasks(project_id: int,
+                       sprint_id: int | None = None, 
+                       db:Session = Depends(get_db),
+                       current_user_id: int = Depends(get_current_user_id)):
+    """
+    Docstring for get_archived_tasks
+    
+    :param project_id: Param to filter the tasks by the project they belong to
+    :type project_id: int
+    :param sprint_id: Optional param to filter tasks that belongs to a specified sprint
+    :type sprint_id: int | None
+    :param db: session available to execute the operation
+    :type db: Session
+    :param current_user_id: ID of the user that wants to execute the operation
+    :type current_user_id: int
+    """
+    use_case=GetArchivedTask(task_repo=SqlAlchemyTaskRepository(db),
+                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
+                             )
+    
+    return use_case.execute(project_id, sprint_id, current_user_id)

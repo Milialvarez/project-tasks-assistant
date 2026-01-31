@@ -28,3 +28,7 @@ class TaskRepository(ABC):
     @abstractmethod
     def delete(self, task_id: int) -> None:
         pass
+
+    @abstractmethod
+    def get_archived(self, project_id: int, sprint_id: int | None) -> List[Task]:
+        pass
