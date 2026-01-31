@@ -21,6 +21,8 @@ class SqlAlchemySprintRepository(SprintRepository):
 
     def get_by_id(self, sprint_id: int):
         sprint = self.db.query(SprintModel).filter(SprintModel.id == sprint_id).first()
+        if sprint is None:
+            return None
         return to_domain(sprint)
 
     def update(self, sprint: Sprint) -> Sprint:

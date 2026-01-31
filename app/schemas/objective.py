@@ -18,3 +18,9 @@ class ObjectiveResponse(BaseModel):
 
     class Config:
         from_attributes = True  
+
+class ObjectiveUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    status: ObjectiveStatus | None = None
+    sprint_id: int | None = None

@@ -34,6 +34,8 @@ class SqlAlchemyProjectRepository(ProjectRepository):
 
     def get_by_id(self, project_id: int):
         model = self.db.query(Model).filter(Model.id == project_id).first()
+        if model is None:
+            return None
         return to_domain(model) if model else None
 
     def delete(self, project):

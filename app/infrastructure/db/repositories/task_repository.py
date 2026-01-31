@@ -25,6 +25,8 @@ class SqlAlchemyTaskRepository(TaskRepository):
         
     def get_by_id(self, task_id: int) -> Task | None:
         model = self.db.query(TaskModel).filter(TaskModel.id == task_id).first()
+        if model is None:
+            return None
         return to_domain(model) if model else None
 
     def filter(self, *, project_id, sprint_id, assigned_user_id)-> List[Task]:

@@ -38,6 +38,8 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
     
     def get_by_id(self, blocker_id:int) -> TaskBlocker | None:
         model = self.db.query(TaskBlockerModel).filter(TaskBlockerModel.id==blocker_id).first()
+        if model is None:
+            return None
         return to_domain(model) if model else None
     
     def update(self, blocker: TaskBlocker) -> TaskBlocker:

@@ -29,6 +29,8 @@ class SqlAlchemyProjectInvitationRepository(ProjectInvitationRepository):
 
     def get_by_id(self, invitation_id: int):
         model = self.db.query(Model).get(invitation_id)
+        if model is None:
+            return None
         return to_domain(model) if model else None
 
     def update(self, invitation):
