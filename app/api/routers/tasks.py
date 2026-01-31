@@ -57,6 +57,8 @@ def create_task(
         return use_case.execute(task=task)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
     
 @router.get("/", response_model=list[TaskResponse])
@@ -375,4 +377,3 @@ def delete_comment(comment_id: int,
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
-    
