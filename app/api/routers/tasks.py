@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.application.tasks.create_blocker import CreateBlocker
 from app.application.tasks.create_comment import CreateComment
 from app.application.tasks.create_task import CreateTaskUseCase
+from app.application.tasks.delete_comment import DeleteComment
 from app.application.tasks.delete_task import DeleteTaskUseCase
 from app.application.tasks.filter_tasks import FilterTasksUseCase
 from app.application.tasks.get_blockers import GetTaskBlockersUseCase
@@ -328,6 +329,20 @@ def update_comment(comment_id: int,
                            user_repo=SqlAlchemyUserRepository(db))
     try:
         return use_case.execute(comment_id=comment_id, blocker_data=comment, user_id=current_user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError:
+        raise HTTPException(status_code=500, detail="Internal server error")
+    
+@router.delete("/comment/{comment_id}")
+def delete_comment(comment_id: int,
+                   db: Session = Depends(get_db),
+                   current_user_id: int = Depends(get_current_user_id)):
+    use_case=DeleteComment(comment_repo=SqlAlchemyCommentRepository(db),
+                           user_repo=SqlAlchemyCommentRepository(db))
+    try:
+        use_case.execute(comment_id, current_user_id)
+        return {"message": "Task Comment deleted successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:

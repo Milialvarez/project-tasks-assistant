@@ -20,3 +20,7 @@ class CommentRepository(ABC):
     @abstractmethod
     def update(self, comment:TaskComment)->TaskComment:
         pass
+
+    @abstractmethod
+    def delete(self, comment_id: int)-> None:
+        pass

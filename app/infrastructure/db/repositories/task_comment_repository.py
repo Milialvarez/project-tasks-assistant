@@ -47,3 +47,15 @@ class SqlAlchemyCommentRepository(CommentRepository):
         except SQLAlchemyError:
             self.db.rollback()
             raise
+
+    def delete(self, comment_id: int) -> None:
+        model = self.db.query(TaskCommentModel).get(comment_id)
+        if not model:
+            raise ValueError("Task Comment not found")
+
+        try:
+            self.db.delete(model)
+            self.db.commit()
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise
