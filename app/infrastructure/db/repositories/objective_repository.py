@@ -44,3 +44,15 @@ class SqlAlchemyObjectiveRepository(ObjectiveRepository):
         except SQLAlchemyError:
             self.db.rollback()
             raise
+
+    def delete(self, objective_id: int)-> None:
+        model = self.db.query(ObjectiveModel).get(objective_id)
+        if not model:
+            raise ValueError("Objective not found")
+
+        try:
+            self.db.delete(model)
+            self.db.commit()
+        except SQLAlchemyError:
+            self.db.rollback()
+            raise
