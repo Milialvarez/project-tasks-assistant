@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.application.objectives.create_objective import CreateObjective
 from app.application.objectives.delete_objective import DeleteObjective
+from app.application.objectives.get_objectives import GetObjectives
 from app.application.objectives.update_objective import UpdateObjective
 from app.core.database import get_db
 from app.dependencies.auth import get_current_user_id
@@ -67,3 +68,36 @@ def delete_objective(objective_id: int,
         raise HTTPException(status_code=400, detail=str(e))
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.get("/", response_model=list[ObjectiveResponse], status_code=status.HTTP_200_OK)
+def get_objectives(
+    project_id: int | None = None,
+    sprint_id: int | None = None,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    """
+    Get objectives filtered by project or sprint.
+    
+    Rules:
+    - If sprint_id is provided, project_id is inferred from sprint.
+    - If sprint_id is NOT provided, project_id is required.
+    """
+
+    if sprint_id is None and project_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="project_id is required when sprint_id is not provided",
+        )
+
+    use_case = GetObjectives(
+        objective_repo=SqlAlchemyObjectiveRepository(db),
+        sprint_repo=SqlAlchemySprintRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+    )
+
+    return use_case.execute(
+        project_id=project_id,
+        sprint_id=sprint_id,
+        user_id=current_user_id,
+    )

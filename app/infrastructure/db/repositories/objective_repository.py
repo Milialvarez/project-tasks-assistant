@@ -1,3 +1,4 @@
+from typing import List
 from app.application.ports.objective_repository import ObjectiveRepository
 from app.domain.entities.objective import Objective
 from app.infrastructure.db.mappers.objective_mapper import to_domain, to_model
@@ -56,3 +57,13 @@ class SqlAlchemyObjectiveRepository(ObjectiveRepository):
         except SQLAlchemyError:
             self.db.rollback()
             raise
+
+    def get(self, project_id: int | None, sprint_id: int | None)->List[Objective]:
+        query = self.db.query(ObjectiveModel)
+
+        if sprint_id is not None:
+            query = query.filter(ObjectiveModel.sprint_id == sprint_id)
+        if project_id is not None:
+            query = query.filter(ObjectiveModel.project_id == project_id)
+
+        return [to_domain(model) for model in query.all()]
