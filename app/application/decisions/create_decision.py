@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.application.ports.decision_repository import DecisionRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.task_repository import TaskRepository
@@ -26,6 +27,8 @@ class CreateDecision:
              task= self.task_repo.get_by_id(decision_data.task_id)
              if not task:
                   raise ValueError("Task with the sent ID doesn't exists")
+             if task.project_id != decision_data.project_id:
+                  raise ValueError("The task provided doesn't belongs to the provided project")
              
         decision = Decision(
             project_id=decision_data.project_id,
@@ -34,6 +37,7 @@ class CreateDecision:
             context=decision_data.context,
             impact=decision_data.impact,
             chosen_by=user_id,
+            created_at=datetime.now()
         )
 
         try:

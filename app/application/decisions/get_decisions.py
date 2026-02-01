@@ -23,6 +23,9 @@ class GetDecisions:
         task_id: Optional[int],
         user_id: int
     ):
+        if not project_id and not task_id:
+         return [] 
+    
         if project_id:    
             if not self.project_member_repo.is_member(project_id, user_id):
                  raise ValueError("You can't see this decisions because you're not a member of this project")
