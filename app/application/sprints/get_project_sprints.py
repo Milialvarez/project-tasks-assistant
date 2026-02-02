@@ -2,6 +2,7 @@ from app.application.ports.project_member_repository import ProjectMemberReposit
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 
 class GetProjectSprints:
@@ -19,10 +20,10 @@ class GetProjectSprints:
 
     def execute(self,*, project_id: int, user_id: int):
         if not self.user_repo.exists(user_id):
-                raise ValueError("User does not exist")
+                raise ResourceNotFoundError("User")
         if not self.project_repo.get_by_id(project_id):
-             raise ValueError("Project doesn't exists")
+             raise ResourceNotFoundError("Project")
         if not self.project_member_repo.is_member(project_id=project_id, user_id=user_id):
-             raise ValueError("You can't see this sprints because you're not member of this project")
+             raise NotProjectMemberError()
         
         return self.sprint_repo.get_sprints_by_project_id(project_id)

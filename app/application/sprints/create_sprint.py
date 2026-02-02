@@ -3,6 +3,7 @@ from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.sprint import Sprint
 from app.domain.enums import SprintStatus
+from app.domain.exceptions import NotProjectManagerError, PersistenceError, ResourceNotFoundError
 from app.schemas.sprint import SprintCreate
 
 
@@ -24,10 +25,10 @@ class CreateSprintUseCase:
             user_id: int
         ) -> Sprint:
             if not self.user_repo.exists(user_id):
-                raise ValueError("User does not exist")
+                raise ResourceNotFoundError("User")
 
             if not self.project_repo.is_manager(sprint.project_id, user_id):
-                raise ValueError("User is not project manager")
+                raise NotProjectManagerError()
 
             sprint_entity = Sprint(
                 project_id=sprint.project_id,
@@ -40,5 +41,5 @@ class CreateSprintUseCase:
 
             try:
                 return self.sprint_repo.create(sprint_entity)
-            except Exception:
-                raise RuntimeError("Failed to create sprint")
+            except Exception as e:
+                raise PersistenceError("Failed to create sprint") from e

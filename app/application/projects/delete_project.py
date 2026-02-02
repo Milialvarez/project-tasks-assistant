@@ -1,4 +1,5 @@
 from app.application.ports.project_repository import ProjectRepository
+from app.domain.exceptions import NotProjectManagerError, PersistenceError, ResourceNotFoundError
 
 class DeleteProjectUseCase:
     def __init__(self, project_repository: ProjectRepository):
@@ -8,12 +9,12 @@ class DeleteProjectUseCase:
         project = self.project_repository.get_by_id(project_id)
 
         if not project:
-            raise ValueError("Project not found")
+            raise ResourceNotFoundError("Project")
 
         if not self.project_repository.is_manager(project_id, user_id):
-            raise ValueError("You are not allowed to delete this project")
+            raise NotProjectManagerError()
 
         try:
             self.project_repository.delete(project)
-        except Exception:
-                raise RuntimeError("Failed to delete project")
+        except Exception as e:
+                raise PersistenceError("Failed to delete project")

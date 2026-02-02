@@ -6,6 +6,7 @@ from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.task_blocker import TaskBlocker
 from app.domain.enums import BlockerStatus
+from app.domain.exceptions import InvalidStatusError, NotProjectMemberError, ResourceNotFoundError
 
 
 class GetTaskBlockersUseCase:
@@ -31,15 +32,15 @@ class GetTaskBlockersUseCase:
     ) -> List[TaskBlocker]:
         task = self.task_repo.get_by_id(task_id=task_id)
         if not task:
-            raise ValueError("Task doesn't exists")
+            raise ResourceNotFoundError("Task")
         
         if not self.user_repo.exists(user_id):
-            raise ValueError("User doesn't exists")
+            raise ResourceNotFoundError("User")
         
         if not self.project_member_repo.is_member(project_id=task.project_id, user_id=user_id):
-            raise ValueError("You can't get this comments because you're not member of this repository")
+            raise NotProjectMemberError()
         
         if status and status not in BlockerStatus:
-            raise ValueError("Unvailable status")
+            raise InvalidStatusError()
         
         return self.blocker_repo.get_by_task_id(task_id=task_id, status=status)

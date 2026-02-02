@@ -3,6 +3,7 @@ from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.domain.entities.objective import Objective
 from app.domain.enums import ObjectiveStatus
+from app.domain.exceptions import NotProjectManagerError, PersistenceError, ResourceNotFoundError
 from app.schemas.objective import ObjectiveCreate
 
 
@@ -20,11 +21,11 @@ class CreateObjective:
 
     def execute(self, objective: ObjectiveCreate, user_id: int):
         if not self.project_member_repo.is_manager(objective.project_id, user_id):
-            raise ValueError("You can't create an objective for this project because you're not the manager")
+            raise NotProjectManagerError()
         
         if objective.sprint_id:
             if not self.sprint_repo.get_by_id(objective.sprint_id):
-                raise ValueError("Sprint does not exist")
+                raise ResourceNotFoundError("Sprint")
             
         domain_objective = Objective(
             id=None, 
@@ -36,5 +37,5 @@ class CreateObjective:
         
         try:
             return self.objective_repo.create(domain_objective)
-        except Exception:
-            raise RuntimeError("Failed to create objective")
+        except Exception as e:
+            raise PersistenceError("Failed to create objective") from e

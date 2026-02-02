@@ -1,5 +1,7 @@
+from decimal import InvalidOperation
 from app.application.ports.task_comment_repository import CommentRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 
 
 class DeleteComment:
@@ -17,16 +19,16 @@ class DeleteComment:
         comment = self.comment_repo.get_by_id(comment_id)
 
         if not comment:
-            raise ValueError("Comment doesn't exists")
+            raise ResourceNotFoundError("Task Comment")
         
         if not self.user_repo.exists(user_id):
-            raise ValueError("User doesn't exists")
+            raise ResourceNotFoundError("Error")
         
         if comment.user_id != user_id:
-            raise ValueError("You can't delete this comment because you didn't write it")
+            raise InvalidOperation("You can't delete this comment because you didn't write it")
         
         try:
             self.comment_repo.delete(comment_id)
-        except Exception:
-            raise RuntimeError("Failed to delete task blocker")
+        except Exception as e:
+            raise PersistenceError("Failed to delete task blocker")
         

@@ -9,6 +9,7 @@ from app.application.ports.task_status_history_repository import TaskStatusHisto
 from app.domain.entities.task_blocker import TaskBlocker
 from app.domain.entities.task_status_history import TaskStatusHistory
 from app.domain.enums import BlockerStatus, TaskStatus
+from app.domain.exceptions import NotProjectMemberError, PersistenceError, ResourceNotFoundError
 from app.schemas.blocker import TaskBlockerCreate
 
 
@@ -31,17 +32,17 @@ class CreateBlocker:
     def execute(self, task_id: int, blocker_data: TaskBlockerCreate, user_id: int):
 
         if not self.user_repository.exists(user_id=user_id):
-            raise ValueError("User doesn't exist")
+            raise ResourceNotFoundError("User")
 
         task = self.task_repository.get_by_id(task_id)
         if not task:
-            raise ValueError("Task doesn't exist")
+            raise ResourceNotFoundError("Task")
 
         if not self.project_member_repository.is_member(
             project_id=task.project_id,
             user_id=user_id
         ):
-            raise ValueError("You can't add a blocker here because you're not a member of this project")
+            raise NotProjectMemberError()
 
         blocker = TaskBlocker(
             id=None,
@@ -73,5 +74,5 @@ class CreateBlocker:
 
             return created_blocker
 
-        except Exception:
-            raise RuntimeError("Failed to create task blocker")
+        except Exception as e:
+            raise PersistenceError("Failed to create task blocker") from e

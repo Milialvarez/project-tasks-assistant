@@ -2,6 +2,7 @@ from app.application.ports.project_member_repository import ProjectMemberReposit
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 
 class GetStatusHistory:
@@ -19,10 +20,10 @@ class GetStatusHistory:
         task = self.task_repo.get_by_id(task_id)
 
         if not task:
-            raise ValueError("Doesn't exists a task with the provided ID")
+            raise ResourceNotFoundError("Task")
         
         if not self.project_member_repo.is_member(project_id=task.project_id,user_id=user_id):
-            raise ValueError("You can't view this information because you're not member of this project")
+            raise NotProjectMemberError()
         
         return self.task_status_repo.get_by_task_id(task_id)
         

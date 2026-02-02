@@ -1,6 +1,7 @@
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 
 class GetById:
@@ -17,14 +18,14 @@ class GetById:
 
     def execute(self, task_id, user_id):
         if not self.user_repo.exists(user_id):
-            raise ValueError("User doesn't exists")
+            raise ResourceNotFoundError("User")
         
         task = self.task_repo.get_by_id(task_id)
 
         if not task:
-            raise ValueError("There's no task with the provided ID")
+            raise ResourceNotFoundError("Task")
         
         if not self.project_member_repo.is_member(task.project_id, user_id):
-            raise ValueError("You can't see this task because you're not member of this project")
+            raise NotProjectMemberError()
         
         return task

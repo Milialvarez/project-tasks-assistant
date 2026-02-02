@@ -3,6 +3,7 @@ from app.application.ports.project_invitation_repository import ProjectInvitatio
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import NotProjectManagerError, ResourceNotFoundError
 from app.infrastructure.db.models.project_invitation import ProjectInvitation
 from app.domain.enums import InvitationStatus
 from app.infrastructure.services.email_service import EmailService
@@ -31,11 +32,11 @@ class InviteProjectMemberUseCase:
     ):
         # validar manager
         if not self.project_repo.is_manager(project_id, current_user_id):
-            raise ValueError("Only project managers can invite members")
+            raise NotProjectManagerError()
 
         invited_user = self.user_repo.get_by_email(invited_email)
         if not invited_user:
-            raise ValueError("User does not exist")
+            raise ResourceNotFoundError("User")
 
         if self.member_repo.is_member(project_id, invited_user.id):
             raise ValueError("User is already a project member")

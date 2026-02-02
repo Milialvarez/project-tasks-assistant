@@ -2,6 +2,7 @@ from datetime import datetime
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.domain.enums import SprintStatus
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 class StartSprintUseCase:
     def __init__(
@@ -16,10 +17,10 @@ class StartSprintUseCase:
         sprint = self.sprint_repo.get_by_id(sprint_id)
 
         if not sprint:
-            raise ValueError("Sprint not found")
+            raise ResourceNotFoundError("Sprint")
 
         if not self.project_member_repo.is_member(sprint.project_id, user_id):
-            raise ValueError("You are not allowed to start this sprint")
+            raise NotProjectMemberError()
 
         if sprint.started_at is not None:
             raise ValueError("Sprint already started")

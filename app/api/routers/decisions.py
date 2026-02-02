@@ -51,6 +51,7 @@ def delete_decision(
     use_case = DeleteDecision(
                 decision_repo=SqlAlchemyDecisionRepository(db),
                 project_repo=SqlAlchemyProjectRepository(db))
+    
     use_case.execute(decision_id, current_user_id)
     return {"message": "Decision deleted successfully"}
 

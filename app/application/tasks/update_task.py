@@ -4,6 +4,7 @@ from app.application.ports.task_repository import TaskRepository
 from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.task_status_history import TaskStatusHistory
+from app.domain.exceptions import NotProjectMemberError, PersistenceError, ResourceNotFoundError
 
 class UpdateTaskUseCase:
     def __init__(
@@ -24,10 +25,10 @@ class UpdateTaskUseCase:
         task = self.task_repository.get_by_id(task_id)
 
         if not task:
-            raise ValueError("Task not found")
+            raise ResourceNotFoundError("Task")
 
         if not self.project_member_repository.is_member(task.project_id, user_id):
-            raise ValueError("User is not a member of the project")
+            raise NotProjectMemberError()
 
         # TITLE
         if data.title is not None:
@@ -43,13 +44,13 @@ class UpdateTaskUseCase:
         if data.sprint_id is not None:
             sprint = self.sprint_repository.get_by_id(data.sprint_id)
             if not sprint:
-                raise ValueError("Sprint does not exist")
+                raise ResourceNotFoundError("Sprint")
             task.sprint_id = data.sprint_id
 
         # ASSIGNED USER
         if data.assigned_user_id is not None:
             if not self.user_repository.exists(data.assigned_user_id):
-                raise ValueError("Assigned user does not exist")
+                raise ResourceNotFoundError("Assigned User")
             task.assigned_user_id = data.assigned_user_id
 
         # STATUS + HISTORY
@@ -68,4 +69,7 @@ class UpdateTaskUseCase:
         if data.archived is not None:
             task.archived = data.archived
 
-        return self.task_repository.update(task)
+        try:
+            return self.task_repository.update(task)
+        except Exception as e:
+            raise PersistenceError("Failed to update the task")

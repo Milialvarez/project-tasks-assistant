@@ -3,6 +3,7 @@ from app.application.ports.decision_repository import DecisionRepository
 from fastapi import status
 
 from app.application.ports.project_repository import ProjectRepository
+from app.domain.exceptions import NotProjectManagerError, ResourceNotFoundError
 
 class DeleteDecision:
 
@@ -19,14 +20,12 @@ class DeleteDecision:
         decision = self.decision_repo.get_by_id(decision_id)
 
         if not decision:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Decision not found",
+            raise ResourceNotFoundError("Decision")
+
+        if not self.project_repo.is_manager(...) and user_id != decision.chosen_by:
+            raise NotProjectManagerError(
+                "You are not allowed to delete this decision"
             )
-        
-        if not self.project_repo.is_manager(decision.project_id, user_id) and user_id!= decision.chosen_by:
-             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                 detail="You can't delete this decision because you're not manager of the project or the user who chose it")
 
         try:
             self.decision_repo.delete(decision)

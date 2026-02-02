@@ -1,4 +1,5 @@
 from app.application.ports.project_repository import ProjectRepository
+from app.domain.exceptions import NotProjectManagerError, PersistenceError, ResourceNotFoundError
 from app.schemas.project import ProjectUpdate
 
 class UpdateProjectUseCase:
@@ -15,10 +16,10 @@ class UpdateProjectUseCase:
         project = self.project_repository.get_by_id(project_id=project_id)
 
         if not project:
-            raise ValueError("Project not found")
+            raise ResourceNotFoundError("Project")
 
         if not self.project_repository.is_manager(project_id=project_id, user_id=user_id):
-            raise ValueError("You are not allowed to update this project")
+            raise NotProjectManagerError()
 
         if project_data.name is not None:
             if not project_data.name.strip():
@@ -30,5 +31,5 @@ class UpdateProjectUseCase:
 
         try:
             return self.project_repository.update(project)
-        except Exception:
-                raise RuntimeError("Failed to update project")
+        except Exception as e:
+                raise PersistenceError("Failed to update project") from e

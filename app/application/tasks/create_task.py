@@ -5,6 +5,7 @@ from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.task import Task
+from app.domain.exceptions import NotProjectMemberError, PersistenceError, ResourceNotFoundError
 from app.schemas.task import TaskCreate
 
 
@@ -26,23 +27,23 @@ class CreateTaskUseCase:
     def execute(self, *, task: TaskCreate) -> Task:
         # project exists
         if not self.project_repository.get_by_id(task.project_id):
-            raise ValueError("A task must belong to an existing project")
+            raise ResourceNotFoundError("Project")
 
         # assigned user
         if task.assigned_user_id:
             user = self.user_repository.get_by_id(task.assigned_user_id)
             if not user:
-                raise ValueError("Assigned user does not exist")
+                raise ResourceNotFoundError("Assigned User")
 
             if not self.project_member_repository.is_member(
                 task.project_id, task.assigned_user_id
             ):
-                raise ValueError("User is not member of the project")
+                raise NotProjectMemberError()
 
         # sprint exists
         if task.sprint_id:
             if not self.sprint_repository.get_by_id(task.sprint_id):
-                raise ValueError("Sprint does not exist")
+                raise ResourceNotFoundError("Sprint")
 
         domain_task = Task(
             id=None,
@@ -55,5 +56,7 @@ class CreateTaskUseCase:
             created_at=datetime.now(),
             archived=False,
         )
-
-        return self.task_repository.create(domain_task)
+        try:
+            return self.task_repository.create(domain_task)
+        except Exception as e:
+            raise PersistenceError("Failed at task creation")

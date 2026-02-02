@@ -2,6 +2,7 @@ from typing import List
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.project import Project
+from app.domain.exceptions import ResourceNotFoundError
 
 
 class GetUserProjectsUseCase:
@@ -17,6 +18,6 @@ class GetUserProjectsUseCase:
     def execute(self, user_id: int) -> List[Project]:
         # validates user exists
         if not self.user_repository.exists(user_id):
-            raise ValueError("User does not exist")
+            raise ResourceNotFoundError("User")
 
         return self.project_repository.get_projects_for_user(user_id)

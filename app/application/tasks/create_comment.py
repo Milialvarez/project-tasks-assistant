@@ -4,6 +4,7 @@ from app.application.ports.task_comment_repository import CommentRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.task_comment import TaskComment
+from app.domain.exceptions import NotProjectMemberError, PersistenceError, ResourceNotFoundError
 from app.schemas.comment import CommentCreate
 
 
@@ -23,12 +24,12 @@ class CreateComment:
 
     def execute(self, task_id: int, comment_data: CommentCreate, user_id: int):
         if not self.user_repository.exists(user_id=user_id):
-            raise ValueError("User doesn't exists")
+            raise ResourceNotFoundError("User")
         task = self.task_repository.get_by_id(task_id)
         if not task:
-            raise ValueError("Task doesn't exists")
+            raise ResourceNotFoundError("Task")
         if not self.project_member_repository.is_member(project_id=task.project_id, user_id=user_id):
-            raise ValueError("You can't comment here because you're not a member of this project")
+            raise NotProjectMemberError()
         
         comment = TaskComment(
             id=None,
@@ -40,5 +41,5 @@ class CreateComment:
 
         try:
             return self.comment_repository.create(comment)
-        except Exception:
-            raise RuntimeError("Failed to create task comment")
+        except Exception as e:
+            raise PersistenceError("Failed to create task comment") from e

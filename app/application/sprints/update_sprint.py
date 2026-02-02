@@ -2,6 +2,7 @@ from app.application.ports.project_member_repository import ProjectMemberReposit
 from app.application.ports.sprint_repository import SprintRepository
 from app.application.ports.user_repository import UserRepository
 from app.domain.enums import SprintStatus
+from app.domain.exceptions import NotProjectMemberError, PersistenceError, ResourceNotFoundError
 from app.schemas.sprint import SprintUpdate
 
 
@@ -25,10 +26,10 @@ class UpdateSprintUseCase:
         sprint = self.sprint_repo.get_by_id(sprint_data.sprint_id)
 
         if not sprint:
-            raise ValueError("Sprint not found")
+            raise ResourceNotFoundError("Sprint")
 
         if not self.project_member_repo.is_member(sprint.project_id, user_id):
-            raise ValueError("You are not allowed to update this sprint")
+            raise NotProjectMemberError()
 
 
         if sprint_data.name is not None and sprint_data.name.strip():
@@ -45,6 +46,6 @@ class UpdateSprintUseCase:
 
         try:
             return self.sprint_repo.update(sprint)
-        except Exception:
-                raise RuntimeError("Failed to update project")
+        except Exception as e:
+                raise PersistenceError("Failed to update project") from e
 

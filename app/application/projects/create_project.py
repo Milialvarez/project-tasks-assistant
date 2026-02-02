@@ -5,6 +5,7 @@ from app.domain.enums import ProjectRole
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 from app.schemas.project import ProjectCreate
 
 class CreateProjectUseCase:
@@ -28,7 +29,7 @@ class CreateProjectUseCase:
             raise ValueError("Project name cannot be empty")
 
         if not self.user_repository.exists(created_by):
-            raise ValueError("Creator user does not exist")
+            raise ResourceNotFoundError("User")
 
         # crear proyecto
         project = Project(
@@ -48,7 +49,7 @@ class CreateProjectUseCase:
                 role=ProjectRole.manager,
             )
             self.project_member_repository.add_member(member)
-        except Exception:
-                raise RuntimeError("Failed to create project")
+        except Exception as e:
+                raise PersistenceError("Failed to create project")
 
         return project

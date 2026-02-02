@@ -1,5 +1,6 @@
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.application.ports.task_repository import TaskRepository
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 
 class DeleteTaskUseCase:
@@ -15,9 +16,9 @@ class DeleteTaskUseCase:
         task = self.task_repository.get_by_id(task_id)
 
         if not task:
-            raise ValueError("Task not found")
+            raise ResourceNotFoundError("Task")
 
         if not self.project_member_repository.is_member(task.project_id, user_id):
-            raise ValueError("User is not allowed to delete this task")
+            raise NotProjectMemberError()
 
         self.task_repository.delete(task_id)

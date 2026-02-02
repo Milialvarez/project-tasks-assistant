@@ -2,6 +2,7 @@ from app.application.ports.project_member_repository import ProjectMemberReposit
 from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.task_repository import TaskRepository
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 
 class FilterTasksUseCase:
     def __init__(
@@ -25,13 +26,13 @@ class FilterTasksUseCase:
         current_user_id: int,
     ):
         if not self.project_repository.get_by_id(project_id):
-            raise ValueError("Project does not exist")
+            raise ResourceNotFoundError("Project")
 
         if not self.project_member_repository.is_member(project_id, current_user_id):
-            raise ValueError("You are not a member of this project")
+            raise NotProjectMemberError()
 
         if assigned_user_id and not self.user_repository.exists(assigned_user_id):
-            raise ValueError("Assigned user does not exist")
+            raise ResourceNotFoundError("Assigned User")
 
         return self.task_repository.filter(
             project_id=project_id,

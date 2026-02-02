@@ -3,6 +3,7 @@ from app.application.ports.project_invitation_repository import ProjectInvitatio
 from app.application.ports.project_member_repository import ProjectMemberRepository
 from app.domain.entities.project_member import ProjectMember
 from app.domain.enums import InvitationStatus, ProjectRole
+from app.domain.exceptions import ResourceNotFoundError
 
 class AcceptProjectInvitationUseCase:
     def __init__(self, invitation_repo: ProjectInvitationRepository, member_repo: ProjectMemberRepository):
@@ -13,7 +14,7 @@ class AcceptProjectInvitationUseCase:
         invitation = self.invitation_repo.get_by_id(invitation_id)
 
         if not invitation:
-            raise ValueError("Invitation not found")
+            raise ResourceNotFoundError("Invitation")
 
         if invitation.status != InvitationStatus.pending:
             raise ValueError("Invitation is no longer valid")
