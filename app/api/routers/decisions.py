@@ -21,15 +21,14 @@ def create_decision(
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id),
 ):
-    use_case = CreateDecision(decision_repo=SqlAlchemyDecisionRepository(db),
-                              project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                              task_repo=SqlAlchemyTaskRepository(db))
-    try:
-        return use_case.execute(decision_data, current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    use_case = CreateDecision(
+        decision_repo=SqlAlchemyDecisionRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+        task_repo=SqlAlchemyTaskRepository(db),
+    )
+
+    return use_case.execute(decision_data, current_user_id)
+
 
 @router.put("/{decision_id}", response_model=DecisionResponse)
 def update_decision(

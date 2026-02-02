@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
+from app.api.exception_handlers import domain_error_handler, not_found_handler, not_manager_handler, not_member_handler, persistence_error_handler
 from app.api.routers import auth, decisions, objective, projects, sprints, tasks, users
+from app.domain.exceptions import DomainError, NotProjectManagerError, NotProjectMemberError, PersistenceError, ResourceNotFoundError
 
 app = FastAPI(
     title="Project & Tasks Assistant API",
@@ -15,6 +17,13 @@ app.include_router(sprints.router)
 app.include_router(tasks.router)
 app.include_router(objective.router)
 app.include_router(decisions.router)
+
+app.add_exception_handler(DomainError, domain_error_handler)
+app.add_exception_handler(NotProjectMemberError, not_member_handler)
+app.add_exception_handler(NotProjectManagerError, not_manager_handler)
+app.add_exception_handler(ResourceNotFoundError, not_found_handler)
+app.add_exception_handler(PersistenceError, persistence_error_handler)
+
 
 @app.get("/")
 def health_check():

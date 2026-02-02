@@ -2,7 +2,8 @@ from typing import List, Optional
 from app.application.ports.decision_repository import DecisionRepository
 from app.domain.entities.decision import Decision
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from app.domain.exceptions import EntityAlreadyExistsError, PersistenceError
 from app.infrastructure.db.models.decision import Decision as DecisionModel
 from app.infrastructure.db.mappers.decision_mapper import to_domain, to_model
 
@@ -19,9 +20,12 @@ class SqlAlchemyDecisionRepository(DecisionRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except IntegrityError as e:
             self.db.rollback()
-            raise
+            raise EntityAlreadyExistsError("Decision already exists") from e
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            raise PersistenceError("Database error") from e
 
     def update(self, decision: Decision) -> Decision:
         model = self.db.query(DecisionModel).get(decision.id)

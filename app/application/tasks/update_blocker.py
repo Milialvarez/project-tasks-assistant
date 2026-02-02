@@ -6,8 +6,8 @@ from app.application.ports.task_status_history_repository import TaskStatusHisto
 from app.application.ports.user_repository import UserRepository
 from app.domain.entities.task_status_history import TaskStatusHistory
 from app.domain.enums import BlockerStatus, TaskStatus
+from app.domain.exceptions import InvalidStatusError, NotProjectMemberError, PersistenceError, ResourceNotFoundError
 from app.schemas.blocker import BlockerUpdate
-
 
 class UpdateBlockerUseCase:
     def __init__(
@@ -26,33 +26,32 @@ class UpdateBlockerUseCase:
         self.project_member_repo=project_member_repo
 
     def execute(self, blocker_id: int, blocker_data: BlockerUpdate, user_id: int):
-        if not self.user_repo.exists(user_id=user_id):
-            raise ValueError("User doesn't exist")
-        
-        blocker = self.blocker_repo.get_by_id(blocker_id)
 
+        blocker = self.blocker_repo.get_by_id(blocker_id)
         if not blocker:
-            raise ValueError("Blocker with that ID doesn't exists")
+            raise ResourceNotFoundError("Blocker")
 
         task = self.task_repo.get_by_id(blocker.task_id)
+        if not task:
+            raise ResourceNotFoundError("Task")
 
-        if not self.project_member_repo.is_member(project_id=task.project_id, user_id=user_id):
-            raise ValueError("You can't add a blocker here because you're not a member of this project")
-        
+        if not self.project_member_repo.is_member(task.project_id, user_id):
+            raise NotProjectMemberError(
+                "You are not allowed to update blockers in this project"
+            )
+
         if blocker_data.cause is not None:
             blocker.cause = blocker_data.cause
 
         if blocker_data.status is not None:
             if blocker_data.status != BlockerStatus.resolved:
-                raise ValueError("Invalid status enum")
+                raise InvalidStatusError("Only 'resolved' status is allowed")
             blocker.status = BlockerStatus.resolved
             blocker.solved_at = datetime.now()
 
         try:
-            # Actualizar blocker
             updated_blocker = self.blocker_repo.update(blocker)
 
-            # Cambiar estado de la task si se resolvió el bloqueo
             if updated_blocker.status == BlockerStatus.resolved:
                 history = TaskStatusHistory(
                     id=None,
@@ -68,5 +67,5 @@ class UpdateBlockerUseCase:
 
             return updated_blocker
 
-        except Exception:
-            raise RuntimeError("Failed to update task blocker")
+        except Exception as e:
+            raise PersistenceError("Failed to update task blocker") from e

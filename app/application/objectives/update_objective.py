@@ -1,5 +1,5 @@
 from app.application.ports.objective_repository import ObjectiveRepository
-from app.application.ports.project_member_repository import ProjectMemberRepository
+from app.application.ports.project_repository import ProjectRepository
 from app.application.ports.sprint_repository import SprintRepository
 from app.schemas.objective import ObjectiveUpdate
 
@@ -9,11 +9,11 @@ class UpdateObjective:
             self,
             *,
             objective_repo=ObjectiveRepository,
-            project_member_repo=ProjectMemberRepository,
+            project_repo=ProjectRepository,
             sprint_repo=SprintRepository
     ):
         self.objective_repo=objective_repo
-        self.project_member_repo=project_member_repo
+        self.project_member_repo=project_repo
         self.sprint_repo=sprint_repo
 
     def execute(self, objective_data: ObjectiveUpdate, objective_id: int, user_id: int):
@@ -22,8 +22,8 @@ class UpdateObjective:
         if not objective:
             raise ValueError("Objective with the provided ID doesn't exists")
         
-        if not self.project_member_repo.is_member(project_id=objective.project_id, user_id=user_id):
-            raise ValueError("You can't edit this objective because you're not a member of this repository")
+        if not self.project_member_repo.is_manager(project_id=objective.project_id, user_id=user_id):
+            raise ValueError("You can't edit this objective because you're not the manager of this project")
         
         if objective_data.title is not None:
             objective.title=objective_data.title

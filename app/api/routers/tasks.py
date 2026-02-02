@@ -333,22 +333,27 @@ def get_by_id(task_id: int,
     except RuntimeError:
         raise HTTPException(status_code=500, detail="Internal server error")
     
-@router.put("/blocker/{blocker_id}", response_model=TaskBlockerResponse, status_code=201)
-def update_blocker(blocker_id: int,
-                   blocker: BlockerUpdate,
-                   db: Session = Depends(get_db), 
-                   current_user_id: int = Depends(get_current_user_id)):
-    use_case=UpdateBlockerUseCase(blocker_repo=SqlAlchemyBlockerRepository(db),
-                                  task_repo=SqlAlchemyTaskRepository(db),
-                                  task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
-                                  user_repo=SqlAlchemyUserRepository(db),
-                                  project_member_repo=SqlAlchemyProjectMemberRepository(db))
-    try:
-        return use_case.execute(blocker_id=blocker_id, blocker_data=blocker, user_id=current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+@router.put("/blocker/{blocker_id}", response_model=TaskBlockerResponse)
+def update_blocker(
+    blocker_id: int,
+    blocker: BlockerUpdate,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+):
+    use_case = UpdateBlockerUseCase(
+        blocker_repo=SqlAlchemyBlockerRepository(db),
+        task_repo=SqlAlchemyTaskRepository(db),
+        task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
+        user_repo=SqlAlchemyUserRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+    )
+
+    return use_case.execute(
+        blocker_id=blocker_id,
+        blocker_data=blocker,
+        user_id=current_user_id,
+    )
+
     
 @router.put("/comment/{comment_id}", response_model=CommentResponse, status_code=200)
 def update_comment(comment_id: int, 
