@@ -10,3 +10,7 @@ class ProjectMemberRepository(ABC):
     @abstractmethod
     def is_member(self, project_id: int, user_id: int) -> bool:
         pass
+    
+    @abstractmethod
+    def delete(self, project_id: int, user_id: int):
+        pass

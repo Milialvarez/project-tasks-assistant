@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.application.projects.accept_invitation import AcceptProjectInvitationUseCase
 from app.application.projects.delete_project import DeleteProjectUseCase
+from app.application.projects.delete_project_member import DeleteProjectMember
 from app.application.projects.get_user_projects import GetUserProjectsUseCase
 from app.application.projects.invite_member import InviteProjectMemberUseCase
 from app.application.projects.reject_invitation import RejectProjectInvitationUseCase
@@ -183,3 +184,22 @@ def reject_project_invitation(
             user_id=current_user_id,
         )
     return {"message": "Invitation rejected"}
+
+@router.delete("/{project_id}/member/{user_id}")
+def delete_project_member(
+    project_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user_id),
+    ):
+    use_case=DeleteProjectMember(
+        project_repo=SqlAlchemyProjectRepository(db),
+        project_member_repo=SqlAlchemyProjectMemberRepository(db))
+    
+    use_case.execute(
+        project_id,
+        user_id,
+        current_user_id
+    )
+
+    return {"message": "Project Member successfully deleted"}
