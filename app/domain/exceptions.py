@@ -4,6 +4,12 @@ class DomainError(Exception):
     """Base exception for domain/application errors"""
     pass
 
+class AuthenticationError(DomainError):
+    pass
+
+
+class UserNotActiveError(DomainError):
+    pass
 
 class NotProjectMemberError(DomainError):
     def __init__(self):

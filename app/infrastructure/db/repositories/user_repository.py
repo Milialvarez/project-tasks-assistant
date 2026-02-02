@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.application.ports.user_repository import UserRepository
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 from app.infrastructure.db.models.user import User as UserModel
 from app.infrastructure.db.mappers.user_mapper import to_model, to_domain
 from app.domain.entities.user import User
@@ -34,26 +35,23 @@ class SqlAlchemyUserRepository(UserRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Failed to create user") from e
+
 
     def activate_user(self, user_id: int) -> None:
-        model = (
-            self.db.query(UserModel)
-            .filter(UserModel.id == user_id)
-            .first()
-        )
+        model = self.db.query(UserModel).filter(UserModel.id == user_id).first()
 
         if not model:
-            raise ValueError("User not found")
+            raise ResourceNotFoundError("User")
 
         model.active = True
         try:
             self.db.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Failed to activate user") from e
 
     def get_by_id(self, user_id: int) -> User | None:
         model = (

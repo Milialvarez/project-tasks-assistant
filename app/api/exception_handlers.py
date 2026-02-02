@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi import status
 
 from app.domain.exceptions import (
+    AuthenticationError,
     DomainError,
     NotProjectMemberError,
     NotProjectManagerError,
@@ -10,6 +11,7 @@ from app.domain.exceptions import (
     InvalidStatusError,
     InvalidOperationError,
     PersistenceError,
+    UserNotActiveError,
 )
 
 def domain_error_handler(_: Request, exc: DomainError):
@@ -43,4 +45,17 @@ def persistence_error_handler(_: Request, exc: PersistenceError):
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal server error"},
+    )
+
+def auth_error_handler(_: Request, exc: AuthenticationError):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": str(exc)},
+    )
+
+
+def not_active_handler(_: Request, exc: UserNotActiveError):
+    return JSONResponse(
+        status_code=status.HTTP_403_FORBIDDEN,
+        content={"detail": str(exc)},
     )

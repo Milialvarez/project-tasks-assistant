@@ -38,12 +38,8 @@ def create_sprint(sprint: SprintCreate,
         user_repo=SqlAlchemyUserRepository(db)
     )
 
-    try:
-        return use_case.execute(sprint=sprint, user_id=current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return use_case.execute(sprint=sprint, user_id=current_user_id)
 
 @router.put("/")
 def update_sprint(sprint: SprintUpdate, 
@@ -63,12 +59,8 @@ def update_sprint(sprint: SprintUpdate,
         project_member_repo=SqlAlchemyProjectMemberRepository(db),
         user_repo=SqlAlchemyUserRepository(db)
         )
-    try:
-        return use_case.execute(sprint_data=sprint, user_id=current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+
+    return use_case.execute(sprint_data=sprint, user_id=current_user_id)
     
 @router.patch("/{sprint_id}/start")
 def start_sprint(
@@ -81,13 +73,10 @@ def start_sprint(
         project_member_repo=SqlAlchemyProjectMemberRepository(db),
     )
 
-    try:
-        return use_case.execute(
+    return use_case.execute(
             sprint_id=sprint_id,
             user_id=current_user_id,
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/project/{project_id}", response_model=List[SprintResponse], status_code=200)
 def get_user_sprints(project_id: int,
@@ -105,7 +94,5 @@ def get_user_sprints(project_id: int,
                                 project_repo=SqlAlchemyProjectRepository(db),
                                 project_member_repo=SqlAlchemyProjectMemberRepository(db),
                                  sprint_repo=SqlAlchemySprintRepository(db))
-    try:
-        return use_case.execute(project_id=project_id, user_id=current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+    return use_case.execute(project_id=project_id, user_id=current_user_id)

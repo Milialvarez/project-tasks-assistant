@@ -43,15 +43,10 @@ def create_project(
         user_repository=SqlAlchemyUserRepository(db),
     )
 
-    try:
-        return use_case.execute(
+    return use_case.execute(
             project=project,
             created_by=current_user_id,
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/me", response_model=List[ProjectResponse],
@@ -101,16 +96,11 @@ def update_project(
         SqlAlchemyProjectRepository(db)
     )
 
-    try:
-        return use_case.execute(
+    return use_case.execute(
             project_id=project_id,
             project_data=project,
             user_id=current_user_id,
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.delete("/{project_id}")
@@ -130,15 +120,10 @@ def delete_project(
 
     use_case = DeleteProjectUseCase(SqlAlchemyProjectRepository(db))
 
-    try:
-        use_case.execute(
+    use_case.execute(
             project_id=project_id,
             user_id=current_user_id
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
 
     return {"message": "Project deleted successfully"}
 
@@ -180,11 +165,8 @@ def accept_project_invitation(
         member_repo=SqlAlchemyProjectMemberRepository(db),
     )
 
-    try:
-        use_case.execute(invitation_id=invitation_id, user_id=current_user_id)
-        return {"message": "Invitation accepted"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    use_case.execute(invitation_id=invitation_id, user_id=current_user_id)
+    return {"message": "Invitation accepted"}
 
 @router.post("/invitations/{invitation_id}/reject")
 def reject_project_invitation(
@@ -196,11 +178,8 @@ def reject_project_invitation(
         invitation_repo=SqlAlchemyProjectInvitationRepository(db)
     )
 
-    try:
-        use_case.execute(
+    use_case.execute(
             invitation_id=invitation_id,
             user_id=current_user_id,
         )
-        return {"message": "Invitation rejected"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Invitation rejected"}

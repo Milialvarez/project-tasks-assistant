@@ -13,31 +13,28 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/register")
 def register_user(data: RegisterUserRequest, db: Session = Depends(get_db)):
-    try:
-        use_case = RegisterUserUseCase(
-            SqlAlchemyUserRepository(db),
-            ActivationTokenRepository(db),
-            EmailService()
-        )
-        use_case.execute(
+    use_case = RegisterUserUseCase(
+        SqlAlchemyUserRepository(db),
+        ActivationTokenRepository(db),
+        EmailService()
+    )
+
+    use_case.execute(
         email=data.email,
         password=data.password,
         name=data.name,
-        )
+    )
 
-        return {"message": "Check your email to activate your account"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Check your email to activate your account"}
 
 
 @router.get("/activate")
 def activate_user(token: str, db: Session = Depends(get_db)):
-    try:
-        use_case = ActivateUserUseCase(
-            SqlAlchemyUserRepository(db),
-            ActivationTokenRepository(db)
-        )
-        use_case.execute(token)
-        return {"message": "Account activated successfully"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    use_case = ActivateUserUseCase(
+        SqlAlchemyUserRepository(db),
+        ActivationTokenRepository(db)
+    )
+
+    use_case.execute(token)
+
+    return {"message": "Account activated successfully"}

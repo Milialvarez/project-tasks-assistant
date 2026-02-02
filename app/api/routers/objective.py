@@ -33,12 +33,7 @@ def create_objective(objective: ObjectiveCreate,
                                sprint_repo=SqlAlchemySprintRepository(db),
                                project_member_repo=SqlAlchemyProjectMemberRepository(db))
     
-    try:
-        return use_case.execute(objective, current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return use_case.execute(objective, current_user_id)
 
 @router.put("/{objective_id}", response_model=ObjectiveResponse, status_code=200)
 def update_objective(objective_data: ObjectiveUpdate,
@@ -48,12 +43,8 @@ def update_objective(objective_data: ObjectiveUpdate,
     use_case=UpdateObjective(objective_repo=SqlAlchemyObjectiveRepository(db),
                              project_member_repo=SqlAlchemyProjectMemberRepository(db),
                              sprint_repo=SqlAlchemySprintRepository(db))
-    try:
-        return use_case.execute(objective_data, objective_id, current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    
+    return use_case.execute(objective_data, objective_id, current_user_id)
     
 @router.delete("/{objective_id}")
 def delete_objective(objective_id: int,
@@ -61,13 +52,9 @@ def delete_objective(objective_id: int,
                      current_user_id: int = Depends(get_current_user_id)):
     use_case=DeleteObjective(objective_repo=SqlAlchemyObjectiveRepository(db),
                              project_repo=SqlAlchemyProjectRepository(db))
-    try:
-        use_case.execute(objective_id, current_user_id)
-        return {"message": "Objective deleted successfully"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        
+    use_case.execute(objective_id, current_user_id)
+    return {"message": "Objective deleted successfully"}
 
 @router.get("/", response_model=list[ObjectiveResponse], status_code=status.HTTP_200_OK)
 def get_objectives(

@@ -40,12 +40,7 @@ def update_decision(
     use_case = UpdateDecision(decision_repo=SqlAlchemyDecisionRepository(db),
                               project_repo=SqlAlchemyProjectRepository(db))
 
-    try:
-        return use_case.execute(decision_id, decision_data, current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return use_case.execute(decision_id, decision_data, current_user_id)
 
 @router.delete("/{decision_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_decision(
@@ -56,13 +51,8 @@ def delete_decision(
     use_case = DeleteDecision(
                 decision_repo=SqlAlchemyDecisionRepository(db),
                 project_repo=SqlAlchemyProjectRepository(db))
-    try:
-        use_case.execute(decision_id, current_user_id)
-        return {"message": "Decision deleted successfully"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    use_case.execute(decision_id, current_user_id)
+    return {"message": "Decision deleted successfully"}
 
 @router.get("/", response_model=list[DecisionResponse], status_code=200)
 def get_decisions(
@@ -80,10 +70,5 @@ def get_decisions(
     use_case = GetDecisions(decision_repo=SqlAlchemyDecisionRepository(db),
                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
                             task_repo=SqlAlchemyTaskRepository(db))
-    try:
-        return use_case.execute(project_id, task_id, current_user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except RuntimeError:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return use_case.execute(project_id, task_id, current_user_id)
 

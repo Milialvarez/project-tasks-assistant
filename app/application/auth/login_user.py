@@ -1,4 +1,5 @@
-# app/application/auth/login_user.py
+from app.domain.exceptions import AuthenticationError, UserNotActiveError
+
 class LoginUserUseCase:
     def __init__(self, user_repo, password_service, jwt_service):
         self.user_repo = user_repo
@@ -9,19 +10,15 @@ class LoginUserUseCase:
         user = self.user_repo.get_by_email(email)
 
         if not user:
-            raise ValueError("Invalid credentials")
+            raise AuthenticationError("Invalid credentials")
 
         if not user.active:
-            raise ValueError("User not activated")
+            raise UserNotActiveError("User not activated")
 
         if not self.password_service.verify(password, user.password_hash):
-            raise ValueError("Invalid credentials")
-
-        access_token = self.jwt_service.create_access_token(
-            subject=str(user.id)
-        )
+            raise AuthenticationError("Invalid credentials")
 
         return {
-            "access_token": access_token,
-            "token_type": "bearer"
+            "access_token": self.jwt_service.create_access_token(str(user.id)),
+            "token_type": "bearer",
         }

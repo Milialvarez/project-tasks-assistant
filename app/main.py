@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from app.api.exception_handlers import domain_error_handler, not_found_handler, not_manager_handler, not_member_handler, persistence_error_handler
+from app.api.exception_handlers import auth_error_handler, domain_error_handler, not_active_handler, not_found_handler, not_manager_handler, not_member_handler, persistence_error_handler
 from app.api.routers import auth, decisions, objective, projects, sprints, tasks, users
-from app.domain.exceptions import DomainError, NotProjectManagerError, NotProjectMemberError, PersistenceError, ResourceNotFoundError
+from app.domain.exceptions import AuthenticationError, DomainError, NotProjectManagerError, NotProjectMemberError, PersistenceError, ResourceNotFoundError, UserNotActiveError
 
 app = FastAPI(
     title="Project & Tasks Assistant API",
@@ -23,6 +23,8 @@ app.add_exception_handler(NotProjectMemberError, not_member_handler)
 app.add_exception_handler(NotProjectManagerError, not_manager_handler)
 app.add_exception_handler(ResourceNotFoundError, not_found_handler)
 app.add_exception_handler(PersistenceError, persistence_error_handler)
+app.add_exception_handler(AuthenticationError, auth_error_handler)
+app.add_exception_handler(UserNotActiveError, not_active_handler)
 
 
 @app.get("/")
