@@ -5,6 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.domain.entities.task_blocker import TaskBlocker
 from app.domain.enums import BlockerStatus
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 from app.infrastructure.db.mappers.task_blocker_mapper import to_domain, to_model
 from app.infrastructure.db.models.task_blocker import TaskBlocker as TaskBlockerModel
 
@@ -19,9 +20,9 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_by_task_id(self, *, task_id: int, status: BlockerStatus | None = None) -> List[TaskBlocker]:
 
@@ -45,7 +46,7 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
     def update(self, blocker: TaskBlocker) -> TaskBlocker:
         model = self.db.query(TaskBlockerModel).get(blocker.id)
         if not model:
-            raise ValueError("Blocker not found")
+            raise ResourceNotFoundError("Task Blocker")
 
         try:
             model.cause = blocker.cause
@@ -56,6 +57,6 @@ class SqlAlchemyBlockerRepository(BlockerRepository):
             self.db.refresh(model)
             return to_domain(model)
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e

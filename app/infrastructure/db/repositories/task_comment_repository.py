@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.domain.entities.task_comment import TaskComment
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 from app.infrastructure.db.mappers.task_comment_mapper import to_domain, to_model
 from app.infrastructure.db.models.task_comment import TaskComment as TaskCommentModel
 
@@ -18,9 +19,9 @@ class SqlAlchemyCommentRepository(CommentRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_comments(self, task_id: int)->List[TaskComment]:
         query = self.db.query(TaskCommentModel)
@@ -45,18 +46,18 @@ class SqlAlchemyCommentRepository(CommentRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def delete(self, comment_id: int) -> None:
         model = self.db.query(TaskCommentModel).get(comment_id)
         if not model:
-            raise ValueError("Task Comment not found")
+            raise ResourceNotFoundError("Task comment")
 
         try:
             self.db.delete(model)
             self.db.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e

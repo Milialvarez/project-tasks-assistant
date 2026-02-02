@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.application.ports.task_repository import TaskRepository
 from app.domain.entities.task import Task
+from app.domain.exceptions import PersistenceError, ResourceNotFoundError
 from app.infrastructure.db.models.task import Task as TaskModel
 from app.infrastructure.db.mappers.task_mapper import to_domain, to_model
 
@@ -19,9 +20,9 @@ class SqlAlchemyTaskRepository(TaskRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
         
     def get_by_id(self, task_id: int) -> Task | None:
         model = self.db.query(TaskModel).filter(TaskModel.id == task_id).first()
@@ -46,7 +47,7 @@ class SqlAlchemyTaskRepository(TaskRepository):
     def update(self, task: Task) -> Task:
         model = self.db.query(TaskModel).get(task.id)
         if not model:
-            raise ValueError("Task not found")
+            raise ResourceNotFoundError("Task")
 
         model.title = task.title
         model.description = task.description
@@ -59,21 +60,21 @@ class SqlAlchemyTaskRepository(TaskRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def delete(self, task_id: int) -> None:
         model = self.db.query(TaskModel).get(task_id)
         if not model:
-            raise ValueError("Task not found")
+            raise ResourceNotFoundError("Task")
 
         try:
             self.db.delete(model)
             self.db.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_archived(self, project_id: int, sprint_id: int | None) -> List[Task]:
         query = self.db.query(TaskModel)

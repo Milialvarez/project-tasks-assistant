@@ -1,6 +1,7 @@
 from app.application.ports.sprint_repository import SprintRepository
 from sqlalchemy.exc import SQLAlchemyError
 from app.domain.entities.sprint import Sprint
+from app.domain.exceptions import PersistenceError
 from app.infrastructure.db.models.sprint import Sprint as SprintModel
 from app.infrastructure.db.mappers.sprint_mapper import to_domain, to_model
 
@@ -17,7 +18,7 @@ class SqlAlchemySprintRepository(SprintRepository):
             return to_domain(model)
         except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_by_id(self, sprint_id: int):
         sprint = self.db.query(SprintModel).filter(SprintModel.id == sprint_id).first()
@@ -48,9 +49,9 @@ class SqlAlchemySprintRepository(SprintRepository):
 
             return to_domain(model)
 
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_sprints_by_project_id(self, project_id):
         sprints = (

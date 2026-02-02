@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.application.ports.task_status_history_repository import TaskStatusHistoryRepository
 from sqlalchemy.exc import SQLAlchemyError
 from app.domain.entities.task_status_history import TaskStatusHistory
+from app.domain.exceptions import PersistenceError
 from app.infrastructure.db.mappers.task_status_history_mapper import to_model, to_domain
 from app.infrastructure.db.models.task_status_history import TaskStatusHistory as TaskStatusHistoryModel
 
@@ -20,7 +21,7 @@ class SqlAlchemyTaskStatusHistoryRepository(TaskStatusHistoryRepository):
             return to_domain(model)
         except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_by_task_id(self, task_id: int) -> list[TaskStatusHistory]:
         tasks = (

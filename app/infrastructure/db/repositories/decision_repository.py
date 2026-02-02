@@ -3,7 +3,7 @@ from app.application.ports.decision_repository import DecisionRepository
 from app.domain.entities.decision import Decision
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from app.domain.exceptions import EntityAlreadyExistsError, PersistenceError
+from app.domain.exceptions import EntityAlreadyExistsError, PersistenceError, ResourceNotFoundError
 from app.infrastructure.db.models.decision import Decision as DecisionModel
 from app.infrastructure.db.mappers.decision_mapper import to_domain, to_model
 
@@ -30,7 +30,7 @@ class SqlAlchemyDecisionRepository(DecisionRepository):
     def update(self, decision: Decision) -> Decision:
         model = self.db.query(DecisionModel).get(decision.id)
         if not model:
-            raise ValueError("Objective not found")
+            raise ResourceNotFoundError("Objective not found")
 
         model.title = decision.title
         model.context = decision.context
@@ -40,22 +40,22 @@ class SqlAlchemyDecisionRepository(DecisionRepository):
             self.db.commit()
             self.db.refresh(model)
             return to_domain(model)
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
 
     def delete(self, decision: Decision) -> None:
         model = self.db.query(DecisionModel).get(decision.id)
         if not model:
-            raise ValueError("Decision not found")
+            raise ResourceNotFoundError("Decision not found")
 
         try:
             self.db.delete(model)
             self.db.commit()
-        except SQLAlchemyError:
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise
+            raise PersistenceError("Database error") from e
 
     def get_by_id(self, decision_id: int) -> Optional[Decision]:
         model = self.db.query(DecisionModel).filter(DecisionModel.id == decision_id).first()
