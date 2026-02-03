@@ -20,10 +20,12 @@ class LoginUserUseCase:
 
     def execute(self, email: str, password: str):
         user = self.user_repo.get_by_email(email)
+    
         if not user or not self.password_service.verify(password, user.password_hash):
-            raise AuthenticationError("Invalid credentials")
+            raise AuthenticationError("Invalid email or password") 
+            
         if not user.active:
-            raise UserNotActiveError("User not activated")
+            raise UserNotActiveError("Account is disabled")
 
         # 1. Crear Access Token
         access_token = self.jwt_service.create_access_token(str(user.id))

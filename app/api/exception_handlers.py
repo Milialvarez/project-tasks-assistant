@@ -8,8 +8,6 @@ from app.domain.exceptions import (
     NotProjectMemberError,
     NotProjectManagerError,
     ResourceNotFoundError,
-    InvalidStatusError,
-    InvalidOperationError,
     PersistenceError,
     UserNotActiveError,
 )
@@ -47,15 +45,16 @@ def persistence_error_handler(_: Request, exc: PersistenceError):
         content={"detail": "Internal server error"},
     )
 
-def auth_error_handler(_: Request, exc: AuthenticationError):
-    return JSONResponse(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        content={"detail": str(exc)},
-    )
-
 
 def not_active_handler(_: Request, exc: UserNotActiveError):
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
         content={"detail": str(exc)},
+    )
+
+async def authentication_exception_handler(request: Request, exc: AuthenticationError):
+    return JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={"detail": str(exc), "code": "authentication_error"},
+        headers={"WWW-Authenticate": "Bearer"},
     )

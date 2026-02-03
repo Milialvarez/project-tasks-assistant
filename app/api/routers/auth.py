@@ -23,43 +23,27 @@ def get_jwt_service():
 
 @router.post("/login", response_model=TokenResponse)
 def login(data: LoginRequest, db: Session = Depends(get_db)):
-    
     use_case = LoginUserUseCase(
         user_repo=SqlAlchemyUserRepository(db),
         password_service=PasswordService(),
         jwt_service=get_jwt_service(),
         refresh_token_repo=SqlAlchemyRefreshTokenRepository(db) 
     )
-
-    try:
-        return use_case.execute(email=data.email, password=data.password)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return use_case.execute(email=data.email, password=data.password)
 
 
 @router.post("/refresh", response_model=TokenResponse)
 def refresh_token(data: RefreshTokenRequest, db: Session = Depends(get_db)):
-    
     use_case = RefreshTokenUseCase(
         refresh_token_repo=SqlAlchemyRefreshTokenRepository(db),
         jwt_service=get_jwt_service(),
         user_repo=SqlAlchemyUserRepository(db)
     )
-    
-    try:
-        result = use_case.execute(refresh_token=data.refresh_token)
-        return {
-            "access_token": result["access_token"],
-            "refresh_token": data.refresh_token, 
-            "token_type": "bearer"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    return use_case.execute(refresh_token=data.refresh_token)
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 def logout(data: RefreshTokenRequest, db: Session = Depends(get_db)):
     use_case = LogoutUseCase(refresh_token_repo=SqlAlchemyRefreshTokenRepository(db))
-    
     use_case.execute(refresh_token=data.refresh_token)
-    return {"message": "Logout succesfully from your account"}
+    return {"message": "Logout successful"}

@@ -7,6 +7,15 @@ class DomainError(Exception):
 class AuthenticationError(DomainError):
     pass
 
+class TokenError(AuthenticationError):
+    """Base para errores de token"""
+    pass
+
+class TokenExpiredError(TokenError):
+    pass
+
+class TokenRevokedError(TokenError):
+    pass
 
 class UserNotActiveError(DomainError):
     pass
