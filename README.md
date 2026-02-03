@@ -63,22 +63,27 @@ app/
 - Assign a creator to each project
 - Validate project creation rules
 - List projects
+- Invite members to a project via email service
+- Remove project members (only for managers)
 
 ### Tasks
-- Create tasks inside projects
+- Create tasks inside projects or sprints
 - Track task status (pending, in progress, completed)
 - Task comments and blockers
 - Task status history
-
-### Collaboration
-- Project members
-- Project invitations
-- Role-based access (planned)
 
 ### Organization
 - Sprints
 - Objectives
 - Decisions tracking
+
+### Background Task
+- Email service to acivate an account
+- Email service to accept or reject a project invitation
+- Scheduler to delete expired tokens every 24 hours
+
+### Planned
+- AI integration to analyze sprint statistics, better decisions, blockers that avoid progress
 
 ---
 
