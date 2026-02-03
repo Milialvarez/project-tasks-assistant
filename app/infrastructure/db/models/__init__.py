@@ -10,3 +10,4 @@ from .task_blocker import TaskBlocker
 from .task_comment import TaskComment
 from .decision import Decision
 from .activation_token import ActivationToken
+from .refresh_token import RefreshToken
