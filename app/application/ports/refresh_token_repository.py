@@ -14,3 +14,7 @@ class RefreshTokenRepository(ABC):
     @abstractmethod
     def revoke(self, token: str) -> None:
         pass
+
+    @abstractmethod
+    def delete_expired(self) -> int:
+        pass

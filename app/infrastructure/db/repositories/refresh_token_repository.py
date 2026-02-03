@@ -1,4 +1,5 @@
 # app/infrastructure/repositories/sqlalchemy_refresh_token_repo.py
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.application.ports.refresh_token_repository import RefreshTokenRepository
 from app.infrastructure.db.models import RefreshToken
@@ -22,3 +23,13 @@ class SqlAlchemyRefreshTokenRepository(RefreshTokenRepository):
         if rt:
             rt.revoked = True
             self.db.commit()
+
+    def delete_expired(self) -> int:
+        now = datetime.now(timezone.utc)
+        # SQLAlchemy permite borrar directo con el query
+        deleted_count = self.db.query(RefreshToken).filter(
+            RefreshToken.expires_at < now
+        ).delete()
+        
+        self.db.commit()
+        return deleted_count
