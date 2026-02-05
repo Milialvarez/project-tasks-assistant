@@ -1,4 +1,12 @@
+import os
+import sys
+
+if os.environ.get("SSL_CERT_FILE"):
+    del os.environ["SSL_CERT_FILE"]
+# ----------------------------------
+
 from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi import FastAPI
 from app.api.exception_handlers import (
     authentication_exception_handler, domain_error_handler, 
