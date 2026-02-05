@@ -24,7 +24,7 @@ def ask_project_intelligence(
     - "¿Quién es el usuario con más tareas completadas?"
     - "¿Cuántos story points quemamos en el último sprint?"
     """
-    use_case = AnalyzeProjectUseCase(ai_service = LangChainAnalysisAdapter(db_engine=engine, model_name="llama3"),
+    use_case = AnalyzeProjectUseCase(ai_service = LangChainAnalysisAdapter(db_engine=engine),
                                     project_repo = SqlAlchemyProjectRepository(db),
                                     project_member_repo=SqlAlchemyProjectMemberRepository(db))
 

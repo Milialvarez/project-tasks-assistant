@@ -1,4 +1,5 @@
-from langchain_ollama import ChatOllama
+import os
+from langchain_groq import ChatGroq 
 from langchain_community.utilities import SQLDatabase
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -7,15 +8,24 @@ from app.application.ports.ai_analysis_service import AIAnalysisService
 from app.domain.enums import SprintStatus, ObjectiveStatus, TaskStatus
 
 class LangChainAnalysisAdapter(AIAnalysisService):
-    def __init__(self, db_engine: Engine, model_name: str = "llama3.2:1b"): 
+    def __init__(self, db_engine: Engine):
         self.engine = db_engine
-        self.model_name = model_name
-        self.db = SQLDatabase(self.engine, sample_rows_in_table_info=0) 
+        # Usamos el modelo Llama 3 70B (versión potente) o 8B (rápida).
+        # Groq es tan rápido que puedes usar el 70b-8192 sin problemas.
+        self.model_name = "llama-3.3-70b-versatile"
         
-        self.llm = ChatOllama(
-            model=model_name, 
+        # sample_rows=0 sigue siendo buena práctica
+        self.db = SQLDatabase(self.engine, sample_rows_in_table_info=0)
+        
+        # CONFIGURACIÓN GROQ
+        # Lo ideal es leer esto de os.environ.get("GROQ_API_KEY")
+        # Pero pégala aquí para probar YA MISMO.
+        api_key = os.getenv("API_KEY")
+        
+        self.llm = ChatGroq(
             temperature=0,
-            stop=[";", "```"] 
+            model_name=self.model_name,
+            api_key=api_key
         )
 
     def _get_domain_enums_text(self) -> str:
@@ -27,92 +37,76 @@ class LangChainAnalysisAdapter(AIAnalysisService):
         """
 
     def _get_minimal_schema(self, table_names: list) -> str:
-        """
-        Crea una representación MINIMALISTA de la base de datos.
-        En lugar de 'CREATE TABLE...', devuelve 'tabla: col1, col2, col3'.
-        Esto reduce el prompt de 10k caracteres a unos pocos cientos.
-        """
         schema_summary = []
         try:
-            # Usamos el inspector de SQLAlchemy directamente para ser rápidos
             inspector = self.db._inspector
-            
             for table in table_names:
-                # Solo obtenemos nombres de columnas, ignoramos tipos para ahorrar tokens
                 columns = [col['name'] for col in inspector.get_columns(table)]
                 schema_summary.append(f"- Table '{table}' has columns: {', '.join(columns)}")
-                
             return "\n".join(schema_summary)
         except Exception as e:
-            # Fallback por si algo falla
-            print(f"Error generando esquema minimalista: {e}")
             return self.db.get_table_info(table_names)
 
     def analyze_project(self, project_id: int, question: str) -> str:
-        print("--- [1] Iniciando (Modo Rápido) ---")
-
-        # 1. FILTRO MANUAL DE TABLAS (Solo las críticas)
-        # Ajusta estos nombres si en tu BD son plurales o singulares
-        target_tables = ["projects", "sprint", "task", "objective", "task_status_history", "decisions", "project_members"]
+        # 1. Filtro de tablas
+        target_tables = ["projects", "sprint", "task", "objective", "task_status_history", "decisions", "project_members", "users", "task_blocker"]
         
-        # 2. Obtener esquema optimizado
-        # Esto bajará de 10,000 chars a ~500 chars
+        # 2. Esquema
         db_schema = self._get_minimal_schema(target_tables)
-        print(f"--- [2] Longitud del esquema optimizado: {len(db_schema)} caracteres ---")
 
-        enums_text = self._get_domain_enums_text()
-
-        # 3. Prompt Simplificado
-        template = f"""You are a SQL expert. Convert the user question into a PostgreSQL query.
-        Return ONLY the raw SQL. No markdown, no explanations.
+        # 3. Prompt SQL
+        template = f"""You are a SQL expert using PostgreSQL.
+        Given an input question, create a syntactically correct PostgreSQL query to run.
+        Return ONLY the raw SQL query. Do not use markdown blocks. Do not add explanations.
         
-        Tables Schema:
+        Schema:
         {{schema}}
 
-        Valid Status Values:
-        {enums_text}
+        Enums:
+        {self._get_domain_enums_text()}
 
-        Rules:
+        Constraints:
         - Filter by project_id = {project_id}
-        - Use ILIKE for text search.
-        - Limit to {{top_k}} rows if no number specified.
+        - Use ILIKE for text search
+        - Limit to {{top_k}} results if unspecified
         
         Question: {{input}}
-        SQL:"""
+        SQL Query:"""
 
         sql_prompt = PromptTemplate.from_template(template)
         
-        # 4. Generación SQL (Ahora debería volar 🚀)
-        print("--- [3] Generando SQL... ---")
+        # Generación
         sql_generator = sql_prompt | self.llm | StrOutputParser()
         
-        generated_sql = sql_generator.invoke({
-            "input": question,
-            "top_k": 5,
-            "schema": db_schema # Pasamos el esquema ligero
-        })
-
-        clean_sql = generated_sql.strip().replace("```sql", "").replace("```", "").strip()
-        print(f"--- [DEBUG] SQL: {clean_sql} ---")
-
-        # 5. Ejecución
         try:
+            generated_sql = sql_generator.invoke({
+                "input": question,
+                "top_k": 5,
+                "schema": db_schema
+            })
+            
+            # Limpieza básica por si acaso
+            clean_sql = generated_sql.strip().replace("```sql", "").replace("```", "").strip()
+            # A veces Groq devuelve "Here is the SQL: SELECT...", quitamos el preámbulo si existe
+            if "SELECT" in clean_sql:
+                clean_sql = clean_sql[clean_sql.find("SELECT"):]
+            
+            print(f"DEBUG SQL: {clean_sql}")
+            
+            # Ejecución
             sql_result = self.db.run(clean_sql)
+            
+            # Respuesta Final
+            answer_prompt = PromptTemplate.from_template(
+                "Data: {result}\nQuestion: {question}\nAnswer concisely in Spanish as a Project Manager:"
+            )
+            
+            final_chain = answer_prompt | self.llm | StrOutputParser()
+            
+            return final_chain.invoke({
+                "question": question,
+                "result": sql_result
+            })
+
         except Exception as e:
-            return f"Error SQL: {e}"
-
-        # 6. Respuesta final
-        # Usamos un prompt muy corto para que la respuesta final también sea rápida
-        answer_prompt = PromptTemplate.from_template(
-            "Data: {result}\nQuestion: {question}\nAnswer in Spanish as a Project Manager based strictly on the data:"
-        )
-
-        print("--- [4] Interpretando respuesta... ---")
-        final_chain = answer_prompt | self.llm | StrOutputParser()
-
-        response = final_chain.invoke({
-            "question": question,
-            "result": sql_result
-        })
-        
-        return response
+            return f"Error procesando la solicitud: {str(e)}"
