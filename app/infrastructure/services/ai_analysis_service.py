@@ -5,22 +5,16 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from sqlalchemy.engine import Engine
 from app.application.ports.ai_analysis_service import AIAnalysisService
-from app.domain.enums import SprintStatus, ObjectiveStatus, TaskStatus
+from app.domain.enums import BlockerStatus, SprintStatus, ObjectiveStatus, TaskStatus
 
 class LangChainAnalysisAdapter(AIAnalysisService):
     def __init__(self, db_engine: Engine):
         self.engine = db_engine
-        # Usamos el modelo Llama 3 70B (versión potente) o 8B (rápida).
-        # Groq es tan rápido que puedes usar el 70b-8192 sin problemas.
         self.model_name = "llama-3.3-70b-versatile"
         
-        # sample_rows=0 sigue siendo buena práctica
         self.db = SQLDatabase(self.engine, sample_rows_in_table_info=0)
         
-        # CONFIGURACIÓN GROQ
-        # Lo ideal es leer esto de os.environ.get("GROQ_API_KEY")
-        # Pero pégala aquí para probar YA MISMO.
-        api_key = os.getenv("API_KEY")
+        api_key = os.getenv("API_KEY") 
         
         self.llm = ChatGroq(
             temperature=0,
@@ -30,10 +24,11 @@ class LangChainAnalysisAdapter(AIAnalysisService):
 
     def _get_domain_enums_text(self) -> str:
         return f"""
-        VALORES VÁLIDOS:
-        - Sprint: {[e.value for e in SprintStatus]}
-        - Task: {[e.value for e in TaskStatus]}
-        - Objective: {[e.value for e in ObjectiveStatus]}
+        VALORES VÁLIDOS (ENUMS):
+        - Sprint Status: {[e.value for e in SprintStatus]}
+        - Task Status: {[e.value for e in TaskStatus]}
+        - Objective Status: {[e.value for e in ObjectiveStatus]}
+        - Blocker Status : {[e.value for e in BlockerStatus]}
         """
 
     def _get_minimal_schema(self, table_names: list) -> str:
@@ -47,17 +42,32 @@ class LangChainAnalysisAdapter(AIAnalysisService):
         except Exception as e:
             return self.db.get_table_info(table_names)
 
-    def analyze_project(self, project_id: int, question: str) -> str:
-        # 1. Filtro de tablas
-        target_tables = ["projects", "sprint", "task", "objective", "task_status_history", "decisions", "project_members", "users", "task_blocker"]
+    def analyze_project(self, project_id: int, question: str) -> dict:
+        target_tables = [
+            "projects", "sprint", "task", "objective", 
+            "task_status_history", "decisions", "project_members", 
+            "users", "task_blocker"
+        ]
         
-        # 2. Esquema
         db_schema = self._get_minimal_schema(target_tables)
 
-        # 3. Prompt SQL
-        template = f"""You are a SQL expert using PostgreSQL.
-        Given an input question, create a syntactically correct PostgreSQL query to run.
-        Return ONLY the raw SQL query. Do not use markdown blocks. Do not add explanations.
+        strategies = """
+        BUSINESS RULES & STRATEGIES:
+        1. IF checking for "delays", "slow progress", or "why are we late":
+           - MUST query the 'task_blocker' table joined with 'task' and 'users'.
+           - MUST check for tasks in the active sprint that are NOT 'completed'.
+           - SELECT the blocker cause, the task title, and the user name responsible.
+        
+        2. IF checking for "performance" or "who works most":
+           - Count 'completed' tasks grouped by 'assigned_user_id' (join with users table for names).
+        
+        3. GENERAL:
+           - Join 'users' table using 'task.assigned_user_id = users.id' to get real names, not just IDs.
+           - Active Sprint means sprint.status = 'active'.
+        """
+
+        template = f"""You are a Senior Data Analyst for Agile Projects using PostgreSQL.
+        Your goal is to answer the user question based STRICTLY on the database data.
         
         Schema:
         {{schema}}
@@ -65,19 +75,22 @@ class LangChainAnalysisAdapter(AIAnalysisService):
         Enums:
         {self._get_domain_enums_text()}
 
+        {strategies}
+
         Constraints:
         - Filter by project_id = {project_id}
         - Use ILIKE for text search
         - Limit to {{top_k}} results if unspecified
+        - Return ONLY the raw SQL query. No markdown.
         
         Question: {{input}}
         SQL Query:"""
 
         sql_prompt = PromptTemplate.from_template(template)
         
-        # Generación
         sql_generator = sql_prompt | self.llm | StrOutputParser()
         
+        clean_sql = "" 
         try:
             generated_sql = sql_generator.invoke({
                 "input": question,
@@ -85,28 +98,43 @@ class LangChainAnalysisAdapter(AIAnalysisService):
                 "schema": db_schema
             })
             
-            # Limpieza básica por si acaso
             clean_sql = generated_sql.strip().replace("```sql", "").replace("```", "").strip()
-            # A veces Groq devuelve "Here is the SQL: SELECT...", quitamos el preámbulo si existe
             if "SELECT" in clean_sql:
                 clean_sql = clean_sql[clean_sql.find("SELECT"):]
             
-            print(f"DEBUG SQL: {clean_sql}")
-            
-            # Ejecución
             sql_result = self.db.run(clean_sql)
             
-            # Respuesta Final
             answer_prompt = PromptTemplate.from_template(
-                "Data: {result}\nQuestion: {question}\nAnswer concisely in Spanish as a Project Manager:"
+                """Actúa como un Scrum Master Senior experto.
+                Analiza los datos SQL crudos y responde la pregunta del usuario.
+                
+                REGLAS DE ESTILO:
+                - Sé directo y profesional.
+                - Si hay bloqueos, menciona EXPLÍCITAMENTE la 'causa' y 'quién' es el responsable.
+                - Si el resultado SQL está vacío (ej: []), responde: "No detecto bloqueos ni problemas registrados en los datos actuales."
+                - NO des consejos genéricos como "mejorar la comunicación" a menos que los datos lo sugieran.
+                - Usa formato Markdown (listas, negritas) para que sea legible.
+                
+                Pregunta: {question}
+                Datos SQL (Resultado): {result}
+                
+                Tu Respuesta:"""
             )
             
             final_chain = answer_prompt | self.llm | StrOutputParser()
             
-            return final_chain.invoke({
+            final_answer = final_chain.invoke({
                 "question": question,
                 "result": sql_result
             })
 
+            return {
+                "answer": final_answer,
+                "sql_used": clean_sql
+            }
+
         except Exception as e:
-            return f"Error procesando la solicitud: {str(e)}"
+            return {
+                "answer": f"Lo siento, tuve un problema analizando los datos: {str(e)}",
+                "sql_used": clean_sql
+            }

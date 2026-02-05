@@ -28,10 +28,13 @@ def ask_project_intelligence(
                                     project_repo = SqlAlchemyProjectRepository(db),
                                     project_member_repo=SqlAlchemyProjectMemberRepository(db))
 
-    answer_text = use_case.execute(
+    result_dict = use_case.execute(
         project_id=project_id, 
         user_id=current_user_id, 
         question=request.question
     )
-    
-    return ProjectAnalysisResponse(answer=answer_text)
+
+    return ProjectAnalysisResponse(
+        answer=result_dict["answer"],        
+        sql_used=result_dict.get("sql_used") 
+    )

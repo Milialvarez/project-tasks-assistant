@@ -1,4 +1,5 @@
 # app/application/schemas/analysis.py
+from typing import Optional
 from pydantic import BaseModel
 
 class ProjectAnalysisRequest(BaseModel):
@@ -6,4 +7,4 @@ class ProjectAnalysisRequest(BaseModel):
 
 class ProjectAnalysisResponse(BaseModel):
     answer: str
-    sql_used: str | None = None 
+    sql_used: Optional[str] = None
