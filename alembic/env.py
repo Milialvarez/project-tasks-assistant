@@ -59,8 +59,10 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    connectable_url = database_url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+
     engine = create_engine(
-        database_url,
+        connectable_url,
         poolclass=pool.NullPool,
     )
 
