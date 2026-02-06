@@ -8,22 +8,22 @@ from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 class GetProjectSprints:
     def __init__(
             self,
-            sprint_repo: SprintRepository,
-            project_repo: ProjectRepository,
-            user_repo: UserRepository,
-            project_member_repo: ProjectMemberRepository
+            sprint_repository: SprintRepository,
+            project_repository: ProjectRepository,
+            user_repository: UserRepository,
+            project_member_repository: ProjectMemberRepository
         ):
-        self.sprint_repo=sprint_repo
-        self.user_repo=user_repo
-        self.project_repo=project_repo
-        self.project_member_repo=project_member_repo
+        self.sprint_repository=sprint_repository
+        self.user_repository=user_repository
+        self.project_repository=project_repository
+        self.project_member_repository=project_member_repository
 
     def execute(self,*, project_id: int, user_id: int):
-        if not self.user_repo.exists(user_id):
+        if not self.user_repository.exists(user_id):
                 raise ResourceNotFoundError("User")
-        if not self.project_repo.get_by_id(project_id):
+        if not self.project_repository.get_by_id(project_id):
              raise ResourceNotFoundError("Project")
-        if not self.project_member_repo.is_member(project_id=project_id, user_id=user_id):
+        if not self.project_member_repository.is_member(project_id=project_id, user_id=user_id):
              raise NotProjectMemberError()
         
-        return self.sprint_repo.get_sprints_by_project_id(project_id)
+        return self.sprint_repository.get_sprints_by_project_id(project_id)

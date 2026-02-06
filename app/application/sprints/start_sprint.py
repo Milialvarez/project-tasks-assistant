@@ -7,19 +7,19 @@ from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 class StartSprintUseCase:
     def __init__(
         self,
-        sprint_repo: SprintRepository,
-        project_member_repo: ProjectMemberRepository,
+        sprint_repository: SprintRepository,
+        project_member_repository: ProjectMemberRepository,
     ):
-        self.sprint_repo = sprint_repo
-        self.project_member_repo = project_member_repo
+        self.sprint_repository = sprint_repository
+        self.project_member_repository = project_member_repository
 
     def execute(self, *, sprint_id: int, user_id: int):
-        sprint = self.sprint_repo.get_by_id(sprint_id)
+        sprint = self.sprint_repository.get_by_id(sprint_id)
 
         if not sprint:
             raise ResourceNotFoundError("Sprint")
 
-        if not self.project_member_repo.is_member(sprint.project_id, user_id):
+        if not self.project_member_repository.is_member(sprint.project_id, user_id):
             raise NotProjectMemberError()
 
         if sprint.started_at is not None:
@@ -28,4 +28,4 @@ class StartSprintUseCase:
         sprint.started_at = datetime.utcnow()
         sprint.status = SprintStatus.active
 
-        return self.sprint_repo.update(sprint)
+        return self.sprint_repository.update(sprint)

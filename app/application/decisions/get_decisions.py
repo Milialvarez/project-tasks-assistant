@@ -10,13 +10,13 @@ class GetDecisions:
     def __init__(
             self, 
             *,
-            decision_repo: DecisionRepository,
-            project_member_repo: ProjectMemberRepository,
-            task_repo: TaskRepository
+            decision_repository: DecisionRepository,
+            project_member_repository: ProjectMemberRepository,
+            task_repository: TaskRepository
             ):
-            self.decision_repo = decision_repo
-            self.project_member_repo=project_member_repo
-            self.task_repo=task_repo
+            self.decision_repository = decision_repository
+            self.project_member_repository = project_member_repository
+            self.task_repository = task_repository
 
     def execute(
         self,
@@ -28,13 +28,13 @@ class GetDecisions:
          return [] 
     
         if project_id:    
-            if not self.project_member_repo.is_member(project_id, user_id):
+            if not self.project_member_repository.is_member(project_id, user_id):
                  raise NotProjectMemberError()
         if task_id:
-             task = self.task_repo.get_by_id(task_id)
+             task = self.task_repository.get_by_id(task_id)
              if not task:
                   raise ResourceNotFoundError("Task")
-             if not self.project_member_repo.is_member(task.project_id, user_id):
+             if not self.project_member_repository.is_member(task.project_id, user_id):
                  raise NotProjectMemberError()
              
-        return self.decision_repo.get_filtered(project_id, task_id)
+        return self.decision_repository.get_filtered(project_id, task_id)

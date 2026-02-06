@@ -8,24 +8,24 @@ class GetById:
     def __init__(
             self,
             *,
-            task_repo: TaskRepository,
-            user_repo: UserRepository,
-            project_member_repo: ProjectMemberRepository
+            task_repository: TaskRepository,
+            user_repository: UserRepository,
+            project_member_repository: ProjectMemberRepository
     ):
-        self.task_repo=task_repo
-        self.user_repo=user_repo
-        self.project_member_repo=project_member_repo
+        self.task_repository=task_repository
+        self.user_repository=user_repository
+        self.project_member_repository=project_member_repository
 
     def execute(self, task_id, user_id):
-        if not self.user_repo.exists(user_id):
+        if not self.user_repository.exists(user_id):
             raise ResourceNotFoundError("User")
         
-        task = self.task_repo.get_by_id(task_id)
+        task = self.task_repository.get_by_id(task_id)
 
         if not task:
             raise ResourceNotFoundError("Task")
         
-        if not self.project_member_repo.is_member(task.project_id, user_id):
+        if not self.project_member_repository.is_member(task.project_id, user_id):
             raise NotProjectMemberError()
         
         return task

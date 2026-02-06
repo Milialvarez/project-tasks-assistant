@@ -3,8 +3,12 @@ from app.domain.exceptions import NotProjectManagerError, PersistenceError, Reso
 from app.schemas.project import ProjectUpdate
 
 class UpdateProjectUseCase:
-    def __init__(self, project_repository: ProjectRepository):
-        self.project_repository = project_repository
+    def __init__(
+            self, 
+            *,
+            project_repository: ProjectRepository
+            ):
+            self.project_repository = project_repository
 
     def execute(
         self,

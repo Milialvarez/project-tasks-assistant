@@ -10,13 +10,13 @@ from app.schemas.sprint import SprintCreate
 class CreateSprintUseCase:
     def __init__(
         self,
-        sprint_repo: SprintRepository,
-        project_repo: ProjectRepository,
-        user_repo: UserRepository,
+        sprint_repository: SprintRepository,
+        project_repository: ProjectRepository,
+        user_repository: UserRepository,
     ):
-        self.sprint_repo = sprint_repo
-        self.project_repo = project_repo
-        self.user_repo = user_repo
+        self.sprint_repository = sprint_repository
+        self.project_repository = project_repository
+        self.user_repository = user_repository
 
     def execute(
             self,
@@ -24,10 +24,10 @@ class CreateSprintUseCase:
             sprint: SprintCreate,
             user_id: int
         ) -> Sprint:
-            if not self.user_repo.exists(user_id):
+            if not self.user_repository.exists(user_id):
                 raise ResourceNotFoundError("User")
 
-            if not self.project_repo.is_manager(sprint.project_id, user_id):
+            if not self.project_repository.is_manager(sprint.project_id, user_id):
                 raise NotProjectManagerError()
 
             sprint_entity = Sprint(
@@ -40,6 +40,6 @@ class CreateSprintUseCase:
             )
 
             try:
-                return self.sprint_repo.create(sprint_entity)
+                return self.sprint_repository.create(sprint_entity)
             except Exception as e:
                 raise PersistenceError("Failed to create sprint") from e

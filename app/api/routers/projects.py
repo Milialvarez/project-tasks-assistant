@@ -64,12 +64,10 @@ def get_user_projects(
     :param db: db session available to execute the operation
     :type db: Session
     """
-    project_repo = SqlAlchemyProjectRepository(db)
-    user_repo = SqlAlchemyUserRepository(db)
 
     use_case = GetUserProjectsUseCase(
-        project_repository=project_repo,
-        user_repository=user_repo,
+        project_repository=SqlAlchemyProjectRepository(db),
+        user_repository=SqlAlchemyUserRepository(db),
     )
 
     return use_case.execute(current_user_id)
@@ -94,7 +92,7 @@ def update_project(
     :type db: Session
     """
     use_case = UpdateProjectUseCase(
-        SqlAlchemyProjectRepository(db)
+        project_repository=SqlAlchemyProjectRepository(db)
     )
 
     return use_case.execute(
@@ -119,7 +117,8 @@ def delete_project(
     :type db: Session
     """
 
-    use_case = DeleteProjectUseCase(SqlAlchemyProjectRepository(db))
+    use_case = DeleteProjectUseCase(
+        project_repository=SqlAlchemyProjectRepository(db))
 
     use_case.execute(
             project_id=project_id,
@@ -136,10 +135,10 @@ def invite_project_member(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = InviteProjectMemberUseCase(
-        project_repo=SqlAlchemyProjectRepository(db),
-        user_repo=SqlAlchemyUserRepository(db),
-        invitation_repo=SqlAlchemyProjectInvitationRepository(db),
-        member_repo=SqlAlchemyProjectMemberRepository(db),
+        project_repository=SqlAlchemyProjectRepository(db),
+        user_repository=SqlAlchemyUserRepository(db),
+        invitation_repository=SqlAlchemyProjectInvitationRepository(db),
+        member_repository=SqlAlchemyProjectMemberRepository(db),
         email_service=EmailService(),
     )
 
@@ -162,8 +161,8 @@ def accept_project_invitation(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = AcceptProjectInvitationUseCase(
-        invitation_repo=SqlAlchemyProjectInvitationRepository(db),
-        member_repo=SqlAlchemyProjectMemberRepository(db),
+        invitation_repository=SqlAlchemyProjectInvitationRepository(db),
+        member_repository=SqlAlchemyProjectMemberRepository(db),
     )
 
     use_case.execute(invitation_id=invitation_id, user_id=current_user_id)
@@ -176,7 +175,7 @@ def reject_project_invitation(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = RejectProjectInvitationUseCase(
-        invitation_repo=SqlAlchemyProjectInvitationRepository(db)
+        invitation_repository=SqlAlchemyProjectInvitationRepository(db)
     )
 
     use_case.execute(
@@ -193,8 +192,8 @@ def delete_project_member(
     current_user_id: int = Depends(get_current_user_id),
     ):
     use_case=DeleteProjectMember(
-        project_repo=SqlAlchemyProjectRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db))
+        project_repository=SqlAlchemyProjectRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db))
     
     use_case.execute(
         project_id,

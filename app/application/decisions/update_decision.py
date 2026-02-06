@@ -11,19 +11,19 @@ class UpdateDecision:
     def __init__(
             self, 
             *,
-            decision_repo: DecisionRepository,
-            project_repo: ProjectRepository
+            decision_repository: DecisionRepository,
+            project_repository: ProjectRepository
             ):
-            self.decision_repo = decision_repo
-            self.project_repo=project_repo
+            self.decision_repository = decision_repository
+            self.project_repository = project_repository
 
     def execute(self, decision_id: int, data: DecisionUpdate, user_id: int):
-        decision = self.decision_repo.get_by_id(decision_id)
+        decision = self.decision_repository.get_by_id(decision_id)
 
         if not decision:
             raise ResourceNotFoundError("Decision")
 
-        if not self.project_repo.is_manager(...) and user_id != decision.chosen_by:
+        if not self.project_repository.is_manager(...) and user_id != decision.chosen_by:
             raise NotProjectManagerError(
                 "You are not allowed to update this decision"
             )
@@ -39,6 +39,6 @@ class UpdateDecision:
              decision.impact = data.impact
 
         try:
-            return self.decision_repo.update(decision=decision)
+            return self.decision_repository.update(decision=decision)
         except Exception:
             raise RuntimeError("Failed to update decision")

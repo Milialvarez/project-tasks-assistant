@@ -8,23 +8,23 @@ from app.domain.exceptions import NotProjectMemberError, ResourceNotFoundError
 class GetStatusHistory:
     def __init__(
         self,
-        project_member_repo: ProjectMemberRepository,
-        task_repo: TaskRepository,
-        task_status_repo: TaskStatusHistoryRepository
+        project_member_repository: ProjectMemberRepository,
+        task_repository: TaskRepository,
+        task_status_repository: TaskStatusHistoryRepository
     ):
-        self.project_member_repo = project_member_repo
-        self.task_repo = task_repo
-        self.task_status_repo = task_status_repo
+        self.project_member_repository = project_member_repository
+        self.task_repository = task_repository
+        self.task_status_repository = task_status_repository
 
     def execute(self, task_id: int, user_id:int):
-        task = self.task_repo.get_by_id(task_id)
+        task = self.task_repository.get_by_id(task_id)
 
         if not task:
             raise ResourceNotFoundError("Task")
         
-        if not self.project_member_repo.is_member(project_id=task.project_id,user_id=user_id):
+        if not self.project_member_repository.is_member(project_id=task.project_id,user_id=user_id):
             raise NotProjectMemberError()
         
-        return self.task_status_repo.get_by_task_id(task_id)
+        return self.task_status_repository.get_by_task_id(task_id)
         
         

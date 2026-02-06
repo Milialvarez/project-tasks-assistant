@@ -169,9 +169,9 @@ def get_status_history(task_id: int,
     """
 
     use_case = GetStatusHistory(
-        task_repo=SqlAlchemyTaskRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
-        task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
+        task_repository=SqlAlchemyTaskRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
+        task_status_repository=SqlAlchemyTaskStatusHistoryRepository(db),
     )
 
     return use_case.execute(task_id, current_user_id)
@@ -227,10 +227,10 @@ def create_task_blocker(task_id: int,
 def get_task_comments(task_id: int, 
                       db: Session = Depends(get_db), 
                       current_user_id: int=Depends(get_current_user_id)):
-    use_case=GetComments(task_repo=SqlAlchemyTaskRepository(db),
-                         project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                         comments_repo=SqlAlchemyCommentRepository(db),
-                         user_repo=SqlAlchemyUserRepository(db))
+    use_case=GetComments(task_repository=SqlAlchemyTaskRepository(db),
+                         project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                         comments_repository=SqlAlchemyCommentRepository(db),
+                         user_repository=SqlAlchemyUserRepository(db))
     
     return use_case.execute(task_id=task_id, user_id=current_user_id)
     
@@ -242,10 +242,10 @@ def get_task_blockers(
     db: Session = Depends(get_db),
     current_user_id=Depends(get_current_user_id),
 ):
-    use_case = GetTaskBlockersUseCase(blocker_repo=SqlAlchemyBlockerRepository(db),
-                                      task_repo=SqlAlchemyTaskRepository(db),
-                                      project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                                      user_repo=SqlAlchemyUserRepository(db))
+    use_case = GetTaskBlockersUseCase(blocker_repository=SqlAlchemyBlockerRepository(db),
+                                      task_repository=SqlAlchemyTaskRepository(db),
+                                      project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                                      user_repository=SqlAlchemyUserRepository(db))
 
     return use_case.execute(task_id=task_id, status=status, user_id=current_user_id)
     
@@ -266,8 +266,8 @@ def get_archived_tasks(project_id: int,
     :param current_user_id: ID of the user that wants to execute the operation
     :type current_user_id: int
     """
-    use_case=GetArchivedTask(task_repo=SqlAlchemyTaskRepository(db),
-                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
+    use_case=GetArchivedTask(task_repository=SqlAlchemyTaskRepository(db),
+                             project_member_repository=SqlAlchemyProjectMemberRepository(db),
                              )
 
     return use_case.execute(project_id, sprint_id, current_user_id)
@@ -276,9 +276,9 @@ def get_archived_tasks(project_id: int,
 def get_by_id(task_id: int,
               db: Session = Depends(get_db),
               current_user_id: int = Depends(get_current_user_id)):
-    use_case=GetById(task_repo=SqlAlchemyTaskRepository(db),
-                     user_repo=SqlAlchemyUserRepository(db),
-                     project_member_repo=SqlAlchemyProjectMemberRepository(db))
+    use_case=GetById(task_repository=SqlAlchemyTaskRepository(db),
+                     user_repository=SqlAlchemyUserRepository(db),
+                     project_member_repository=SqlAlchemyProjectMemberRepository(db))
 
     return use_case.execute(task_id=task_id, user_id=current_user_id)
     
@@ -290,11 +290,11 @@ def update_blocker(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = UpdateBlockerUseCase(
-        blocker_repo=SqlAlchemyBlockerRepository(db),
-        task_repo=SqlAlchemyTaskRepository(db),
-        task_status_repo=SqlAlchemyTaskStatusHistoryRepository(db),
-        user_repo=SqlAlchemyUserRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+        blocker_repository=SqlAlchemyBlockerRepository(db),
+        task_repository=SqlAlchemyTaskRepository(db),
+        task_status_repository=SqlAlchemyTaskStatusHistoryRepository(db),
+        user_repository=SqlAlchemyUserRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
     )
 
     return use_case.execute(
@@ -309,8 +309,8 @@ def update_comment(comment_id: int,
                    comment:CommentCreate, 
                    db:Session=Depends(get_db), 
                    current_user_id: int = Depends(get_current_user_id)):
-    use_case=UpdateComment(comment_repo=SqlAlchemyCommentRepository(db),
-                           user_repo=SqlAlchemyUserRepository(db))
+    use_case=UpdateComment(comment_repository=SqlAlchemyCommentRepository(db),
+                           user_repository=SqlAlchemyUserRepository(db))
 
     return use_case.execute(comment_id=comment_id, blocker_data=comment, user_id=current_user_id)
     
@@ -318,8 +318,8 @@ def update_comment(comment_id: int,
 def delete_comment(comment_id: int,
                    db: Session = Depends(get_db),
                    current_user_id: int = Depends(get_current_user_id)):
-    use_case=DeleteComment(comment_repo=SqlAlchemyCommentRepository(db),
-                           user_repo=SqlAlchemyUserRepository(db))
+    use_case=DeleteComment(comment_repository=SqlAlchemyCommentRepository(db),
+                           user_repository=SqlAlchemyUserRepository(db))
 
     use_case.execute(comment_id, current_user_id)
     return {"message": "Task Comment deleted successfully"}

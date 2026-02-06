@@ -9,13 +9,13 @@ from app.schemas.sprint import SprintUpdate
 class UpdateSprintUseCase:
     def __init__(
         self,
-        sprint_repo: SprintRepository,
-        project_member_repo: ProjectMemberRepository,
-        user_repo: UserRepository,
+        sprint_repository: SprintRepository,
+        project_member_repository: ProjectMemberRepository,
+        user_repository: UserRepository,
     ):
-        self.sprint_repo = sprint_repo
-        self.project_member_repo = project_member_repo
-        self.user_repo = user_repo
+        self.sprint_repository = sprint_repository
+        self.project_member_repository = project_member_repository
+        self.user_repository = user_repository
 
     def execute(
         self,
@@ -23,12 +23,12 @@ class UpdateSprintUseCase:
         sprint_data: SprintUpdate,
         user_id: int,
     ):
-        sprint = self.sprint_repo.get_by_id(sprint_data.sprint_id)
+        sprint = self.sprint_repository.get_by_id(sprint_data.sprint_id)
 
         if not sprint:
             raise ResourceNotFoundError("Sprint")
 
-        if not self.project_member_repo.is_member(sprint.project_id, user_id):
+        if not self.project_member_repository.is_member(sprint.project_id, user_id):
             raise NotProjectMemberError()
 
 
@@ -45,7 +45,7 @@ class UpdateSprintUseCase:
             sprint.status = SprintStatus.completed
 
         try:
-            return self.sprint_repo.update(sprint)
+            return self.sprint_repository.update(sprint)
         except Exception as e:
                 raise PersistenceError("Failed to update project") from e
 

@@ -13,15 +13,15 @@ class GetTaskBlockersUseCase:
     def __init__(
             self,
             *,
-            blocker_repo: BlockerRepository,
-            task_repo: TaskRepository,
-            project_member_repo: ProjectMemberRepository,
-            user_repo: UserRepository
+            blocker_repository: BlockerRepository,
+            task_repository: TaskRepository,
+            project_member_repository: ProjectMemberRepository,
+            user_repository: UserRepository
     ):
-        self.blocker_repo= blocker_repo
-        self.task_repo= task_repo
-        self.project_member_repo=project_member_repo
-        self.user_repo=user_repo
+        self.blocker_repository= blocker_repository
+        self.task_repository= task_repository
+        self.project_member_repository=project_member_repository
+        self.user_repository=user_repository
 
     def execute(
         self,
@@ -30,17 +30,17 @@ class GetTaskBlockersUseCase:
         status: BlockerStatus | None = None,
         user_id: int
     ) -> List[TaskBlocker]:
-        task = self.task_repo.get_by_id(task_id=task_id)
+        task = self.task_repository.get_by_id(task_id=task_id)
         if not task:
             raise ResourceNotFoundError("Task")
         
-        if not self.user_repo.exists(user_id):
+        if not self.user_repository.exists(user_id):
             raise ResourceNotFoundError("User")
         
-        if not self.project_member_repo.is_member(project_id=task.project_id, user_id=user_id):
+        if not self.project_member_repository.is_member(project_id=task.project_id, user_id=user_id):
             raise NotProjectMemberError()
         
         if status and status not in BlockerStatus:
             raise InvalidStatusError()
         
-        return self.blocker_repo.get_by_task_id(task_id=task_id, status=status)
+        return self.blocker_repository.get_by_task_id(task_id=task_id, status=status)

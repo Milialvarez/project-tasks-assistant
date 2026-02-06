@@ -6,18 +6,18 @@ from app.domain.exceptions import ResourceNotFoundError, NotProjectMemberError
 class AnalyzeProjectUseCase:
     def __init__(self, 
                  ai_service: AIAnalysisService, 
-                 project_repo: ProjectRepository,
-                 project_member_repo: ProjectMemberRepository):
+                 project_repository: ProjectRepository,
+                 project_member_repository: ProjectMemberRepository):
                 self.ai_service = ai_service
-                self.project_repo = project_repo
-                self.project_member_repo = project_member_repo
+                self.project_repository = project_repository
+                self.project_member_repository = project_member_repository
 
     def execute(self, project_id: int, user_id: int, question: str) -> str:
-        project = self.project_repo.get_by_id(project_id)
+        project = self.project_repository.get_by_id(project_id)
         if not project:
             raise ResourceNotFoundError("Project not found")
 
-        if not self.project_member_repo.is_member(project_id, user_id):
+        if not self.project_member_repository.is_member(project_id, user_id):
             raise NotProjectMemberError("User relies not belong to this project")
 
         answer = self.ai_service.analyze_project(project_id, question)

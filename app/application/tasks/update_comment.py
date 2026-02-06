@@ -12,19 +12,19 @@ class UpdateComment:
     def __init__(
             self,
             *,
-            comment_repo=CommentRepository,
-            user_repo=UserRepository,
+            comment_repository=CommentRepository,
+            user_repository=UserRepository,
     ):
-        self.comment_repo=comment_repo
-        self.user_repo=user_repo
+        self.comment_repository=comment_repository
+        self.user_repository=user_repository
 
     def execute(self, comment_id: int, comment_data: CommentCreate, user_id: int):
-        comment = self.comment_repo.get_by_id(comment_id)
+        comment = self.comment_repository.get_by_id(comment_id)
 
         if not comment:
             raise ResourceNotFoundError("Comment")
         
-        if not self.user_repo.exists(user_id):
+        if not self.user_repository.exists(user_id):
             raise ResourceNotFoundError("User")
         
         if comment.user_id != user_id:
@@ -34,7 +34,7 @@ class UpdateComment:
         comment.edited_at = datetime.now()
 
         try:
-            self.comment_repo.update(comment)
+            self.comment_repository.update(comment)
         except Exception as e:
             raise PersistenceError("Failed to update task comment") from e
         

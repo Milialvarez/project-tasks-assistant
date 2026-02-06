@@ -24,10 +24,10 @@ def get_jwt_service():
 @router.post("/login", response_model=TokenResponse)
 def login(data: LoginRequest, db: Session = Depends(get_db)):
     use_case = LoginUserUseCase(
-        user_repo=SqlAlchemyUserRepository(db),
+        user_repository=SqlAlchemyUserRepository(db),
         password_service=PasswordService(),
         jwt_service=get_jwt_service(),
-        refresh_token_repo=SqlAlchemyRefreshTokenRepository(db) 
+        refresh_token_repository=SqlAlchemyRefreshTokenRepository(db) 
     )
     return use_case.execute(email=data.email, password=data.password)
 
@@ -35,15 +35,15 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/refresh", response_model=TokenResponse)
 def refresh_token(data: RefreshTokenRequest, db: Session = Depends(get_db)):
     use_case = RefreshTokenUseCase(
-        refresh_token_repo=SqlAlchemyRefreshTokenRepository(db),
+        refresh_token_repository=SqlAlchemyRefreshTokenRepository(db),
         jwt_service=get_jwt_service(),
-        user_repo=SqlAlchemyUserRepository(db)
+        user_repository=SqlAlchemyUserRepository(db)
     )
     return use_case.execute(refresh_token=data.refresh_token)
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 def logout(data: RefreshTokenRequest, db: Session = Depends(get_db)):
-    use_case = LogoutUseCase(refresh_token_repo=SqlAlchemyRefreshTokenRepository(db))
+    use_case = LogoutUseCase(refresh_token_repository=SqlAlchemyRefreshTokenRepository(db))
     use_case.execute(refresh_token=data.refresh_token)
     return {"message": "Logout successful"}

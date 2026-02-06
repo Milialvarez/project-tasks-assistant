@@ -8,20 +8,20 @@ from app.domain.exceptions import AuthenticationError, ResourceNotFoundError, To
 class RefreshTokenUseCase:
     def __init__(
             self, 
-            refresh_token_repo: RefreshTokenRepository, 
+            refresh_token_repository: RefreshTokenRepository, 
             jwt_service: JWTService, 
-            user_repo: UserRepository
+            user_repository: UserRepository
             ):
-            self.refresh_token_repo = refresh_token_repo
+            self.refresh_token_repository = refresh_token_repository
             self.jwt_service = jwt_service
-            self.user_repo = user_repo
+            self.user_repository = user_repository
 
     def execute(self, refresh_token: str):
         payload = self.jwt_service.decode_token(refresh_token)
         if not payload or payload.get("type") != "refresh":
             raise AuthenticationError("Invalid token signature or type")
 
-        stored_token = self.refresh_token_repo.get_by_token(refresh_token)
+        stored_token = self.refresh_token_repository.get_by_token(refresh_token)
         if not stored_token:
             raise ResourceNotFoundError("Token not found")
             
@@ -36,7 +36,7 @@ class RefreshTokenUseCase:
              raise TokenExpiredError("Refresh token expired")
 
         user_id = payload.get("sub")
-        user = self.user_repo.get_by_id(user_id)
+        user = self.user_repository.get_by_id(user_id)
         if not user:
              raise ResourceNotFoundError(f"User with id {user_id} not found")
         

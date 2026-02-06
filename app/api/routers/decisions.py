@@ -22,9 +22,9 @@ def create_decision(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = CreateDecision(
-        decision_repo=SqlAlchemyDecisionRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
-        task_repo=SqlAlchemyTaskRepository(db),
+        decision_repository=SqlAlchemyDecisionRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
+        task_repository=SqlAlchemyTaskRepository(db),
     )
 
     return use_case.execute(decision_data, current_user_id)
@@ -37,8 +37,8 @@ def update_decision(
     db: Session = Depends(get_db),
     current_user_id: int = Depends(get_current_user_id)
 ):
-    use_case = UpdateDecision(decision_repo=SqlAlchemyDecisionRepository(db),
-                              project_repo=SqlAlchemyProjectRepository(db))
+    use_case = UpdateDecision(decision_repository=SqlAlchemyDecisionRepository(db),
+                              project_repository=SqlAlchemyProjectRepository(db))
 
     return use_case.execute(decision_id, decision_data, current_user_id)
 
@@ -49,8 +49,8 @@ def delete_decision(
     db: Session = Depends(get_db),
 ):
     use_case = DeleteDecision(
-                decision_repo=SqlAlchemyDecisionRepository(db),
-                project_repo=SqlAlchemyProjectRepository(db))
+                decision_repository=SqlAlchemyDecisionRepository(db),
+                project_repository=SqlAlchemyProjectRepository(db))
     
     use_case.execute(decision_id, current_user_id)
     return {"message": "Decision deleted successfully"}
@@ -68,8 +68,8 @@ def get_decisions(
             detail="project_id is required when task_id is not provided",
         )
 
-    use_case = GetDecisions(decision_repo=SqlAlchemyDecisionRepository(db),
-                            project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                            task_repo=SqlAlchemyTaskRepository(db))
+    use_case = GetDecisions(decision_repository=SqlAlchemyDecisionRepository(db),
+                            project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                            task_repository=SqlAlchemyTaskRepository(db))
     return use_case.execute(project_id, task_id, current_user_id)
 

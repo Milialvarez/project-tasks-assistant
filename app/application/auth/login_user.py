@@ -8,18 +8,18 @@ from app.infrastructure.services.password_service import PasswordService
 
 class LoginUserUseCase:
     def __init__(self, 
-                 user_repo: UserRepository, 
+                 user_repository: UserRepository, 
                  password_service: PasswordService, 
                  jwt_service: JWTService, 
-                 refresh_token_repo: RefreshTokenRepository
+                 refresh_token_repository: RefreshTokenRepository
                  ):
-                self.user_repo = user_repo
+                self.user_repository = user_repository
                 self.password_service = password_service
                 self.jwt_service = jwt_service
-                self.refresh_token_repo = refresh_token_repo
+                self.refresh_token_repository = refresh_token_repository
 
     def execute(self, email: str, password: str):
-        user = self.user_repo.get_by_email(email)
+        user = self.user_repository.get_by_email(email)
     
         if not user or not self.password_service.verify(password, user.password_hash):
             raise AuthenticationError("Invalid email or password") 
@@ -39,7 +39,7 @@ class LoginUserUseCase:
             expires_at=rt_expire,
             revoked=False
         )
-        self.refresh_token_repo.save(refresh_token_entry)
+        self.refresh_token_repository.save(refresh_token_entry)
 
         return {
             "access_token": access_token,

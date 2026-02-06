@@ -9,21 +9,21 @@ class UpdateObjective:
     def __init__(
             self,
             *,
-            objective_repo=ObjectiveRepository,
-            project_repo=ProjectRepository,
-            sprint_repo=SprintRepository
+            objective_repository=ObjectiveRepository,
+            project_repository=ProjectRepository,
+            sprint_repository=SprintRepository
     ):
-        self.objective_repo=objective_repo
-        self.project_member_repo=project_repo
-        self.sprint_repo=sprint_repo
+        self.objective_repository=objective_repository
+        self.project_member_repository=project_repository
+        self.sprint_repository=sprint_repository
 
     def execute(self, objective_data: ObjectiveUpdate, objective_id: int, user_id: int):
-        objective = self.objective_repo.get_by_id(objective_id)
+        objective = self.objective_repository.get_by_id(objective_id)
 
         if not objective:
             raise ResourceNotFoundError("Objective")
         
-        if not self.project_member_repo.is_manager(project_id=objective.project_id, user_id=user_id):
+        if not self.project_member_repository.is_manager(project_id=objective.project_id, user_id=user_id):
             raise NotProjectManagerError()
         
         if objective_data.title is not None:
@@ -35,7 +35,7 @@ class UpdateObjective:
         if objective_data.status is not None:
             objective.status=objective_data.status
 
-        sprint = self.sprint_repo.get_by_id(objective_data.sprint_id)
+        sprint = self.sprint_repository.get_by_id(objective_data.sprint_id)
         if sprint is None:
             raise ResourceNotFoundError("Sprint")
         if sprint.project_id != objective.project_id:
@@ -47,6 +47,6 @@ class UpdateObjective:
 
 
         try:
-            return self.objective_repo.update(objective=objective)
+            return self.objective_repository.update(objective=objective)
         except Exception as e:
             raise PersistenceError("Failed to update objective") from e

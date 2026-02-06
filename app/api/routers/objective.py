@@ -29,9 +29,9 @@ def create_objective(objective: ObjectiveCreate,
     :type current_user_id: int
     """
 
-    use_case = CreateObjective(objective_repo=SqlAlchemyObjectiveRepository(db),
-                               sprint_repo=SqlAlchemySprintRepository(db),
-                               project_member_repo=SqlAlchemyProjectMemberRepository(db))
+    use_case = CreateObjective(objective_repository=SqlAlchemyObjectiveRepository(db),
+                               sprint_repository=SqlAlchemySprintRepository(db),
+                               project_member_repository=SqlAlchemyProjectMemberRepository(db))
     
     return use_case.execute(objective, current_user_id)
 
@@ -40,9 +40,9 @@ def update_objective(objective_data: ObjectiveUpdate,
                      objective_id: int,
                      db: Session = Depends(get_db),
                      current_user_id: int = Depends(get_current_user_id)):
-    use_case=UpdateObjective(objective_repo=SqlAlchemyObjectiveRepository(db),
-                             project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                             sprint_repo=SqlAlchemySprintRepository(db))
+    use_case=UpdateObjective(objective_repository=SqlAlchemyObjectiveRepository(db),
+                             project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                             sprint_repository=SqlAlchemySprintRepository(db))
     
     return use_case.execute(objective_data, objective_id, current_user_id)
     
@@ -50,8 +50,8 @@ def update_objective(objective_data: ObjectiveUpdate,
 def delete_objective(objective_id: int,
                      db: Session = Depends(get_db),
                      current_user_id: int = Depends(get_current_user_id)):
-    use_case=DeleteObjective(objective_repo=SqlAlchemyObjectiveRepository(db),
-                             project_repo=SqlAlchemyProjectRepository(db))
+    use_case=DeleteObjective(objective_repository=SqlAlchemyObjectiveRepository(db),
+                             project_repository=SqlAlchemyProjectRepository(db))
         
     use_case.execute(objective_id, current_user_id)
     return {"message": "Objective deleted successfully"}
@@ -78,9 +78,9 @@ def get_objectives(
         )
 
     use_case = GetObjectives(
-        objective_repo=SqlAlchemyObjectiveRepository(db),
-        sprint_repo=SqlAlchemySprintRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+        objective_repository=SqlAlchemyObjectiveRepository(db),
+        sprint_repository=SqlAlchemySprintRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
     )
 
     return use_case.execute(

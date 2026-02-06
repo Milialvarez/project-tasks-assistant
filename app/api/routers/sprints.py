@@ -33,9 +33,9 @@ def create_sprint(sprint: SprintCreate,
     :type current_user_id: int
     """
     use_case = CreateSprintUseCase(
-        sprint_repo=SqlAlchemySprintRepository(db),
-        project_repo=SqlAlchemyProjectRepository(db),
-        user_repo=SqlAlchemyUserRepository(db)
+        sprint_repository=SqlAlchemySprintRepository(db),
+        project_repository=SqlAlchemyProjectRepository(db),
+        user_repository=SqlAlchemyUserRepository(db)
     )
 
 
@@ -55,9 +55,9 @@ def update_sprint(sprint: SprintUpdate,
     :param current_user_id: ID of the user that wants to execute the operation
     """
     use_case = UpdateSprintUseCase(
-        sprint_repo=SqlAlchemySprintRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
-        user_repo=SqlAlchemyUserRepository(db)
+        sprint_repository=SqlAlchemySprintRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
+        user_repository=SqlAlchemyUserRepository(db)
         )
 
     return use_case.execute(sprint_data=sprint, user_id=current_user_id)
@@ -69,8 +69,8 @@ def start_sprint(
     current_user_id: int = Depends(get_current_user_id),
 ):
     use_case = StartSprintUseCase(
-        sprint_repo=SqlAlchemySprintRepository(db),
-        project_member_repo=SqlAlchemyProjectMemberRepository(db),
+        sprint_repository=SqlAlchemySprintRepository(db),
+        project_member_repository=SqlAlchemyProjectMemberRepository(db),
     )
 
     return use_case.execute(
@@ -90,9 +90,9 @@ def get_user_sprints(project_id: int,
     :param db: db session available to execute the operation
     :type db: Session
     """
-    use_case = GetProjectSprints(user_repo=SqlAlchemyUserRepository(db),
-                                project_repo=SqlAlchemyProjectRepository(db),
-                                project_member_repo=SqlAlchemyProjectMemberRepository(db),
-                                 sprint_repo=SqlAlchemySprintRepository(db))
+    use_case = GetProjectSprints(user_repository=SqlAlchemyUserRepository(db),
+                                project_repository=SqlAlchemyProjectRepository(db),
+                                project_member_repository=SqlAlchemyProjectMemberRepository(db),
+                                 sprint_repository=SqlAlchemySprintRepository(db))
 
     return use_case.execute(project_id=project_id, user_id=current_user_id)

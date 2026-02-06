@@ -25,8 +25,8 @@ def ask_project_intelligence(
     - "¿Cuántos story points quemamos en el último sprint?"
     """
     use_case = AnalyzeProjectUseCase(ai_service = LangChainAnalysisAdapter(db_engine=engine),
-                                    project_repo = SqlAlchemyProjectRepository(db),
-                                    project_member_repo=SqlAlchemyProjectMemberRepository(db))
+                                    project_repository = SqlAlchemyProjectRepository(db),
+                                    project_member_repository=SqlAlchemyProjectMemberRepository(db))
 
     result_dict = use_case.execute(
         project_id=project_id, 

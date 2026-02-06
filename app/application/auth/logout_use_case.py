@@ -3,9 +3,9 @@ from app.application.ports.refresh_token_repository import RefreshTokenRepositor
 class LogoutUseCase:
     def __init__(
             self, 
-            refresh_token_repo: RefreshTokenRepository
+            refresh_token_repository: RefreshTokenRepository
             ):
-            self.refresh_token_repo = refresh_token_repo
+            self.refresh_token_repository = refresh_token_repository
 
     def execute(self, refresh_token: str):
-        self.refresh_token_repo.revoke(refresh_token)
+        self.refresh_token_repository.revoke(refresh_token)

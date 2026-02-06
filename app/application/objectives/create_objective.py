@@ -11,20 +11,20 @@ class CreateObjective:
     def __init__(
             self,
             *,
-            objective_repo: ObjectiveRepository,
-            sprint_repo: SprintRepository,
-            project_repo: ProjectRepository
+            objective_repository: ObjectiveRepository,
+            sprint_repository: SprintRepository,
+            project_repository: ProjectRepository
     ):
-        self.objective_repo=objective_repo
-        self.sprint_repo=sprint_repo
-        self.project_member_repo=project_repo
+        self.objective_repository=objective_repository
+        self.sprint_repository=sprint_repository
+        self.project_member_repository=project_repository
 
     def execute(self, objective: ObjectiveCreate, user_id: int):
-        if not self.project_member_repo.is_manager(objective.project_id, user_id):
+        if not self.project_member_repository.is_manager(objective.project_id, user_id):
             raise NotProjectManagerError()
         
         if objective.sprint_id:
-            if not self.sprint_repo.get_by_id(objective.sprint_id):
+            if not self.sprint_repository.get_by_id(objective.sprint_id):
                 raise ResourceNotFoundError("Sprint")
             
         domain_objective = Objective(
@@ -36,6 +36,6 @@ class CreateObjective:
             status=ObjectiveStatus.pending)
         
         try:
-            return self.objective_repo.create(domain_objective)
+            return self.objective_repository.create(domain_objective)
         except Exception as e:
             raise PersistenceError("Failed to create objective") from e

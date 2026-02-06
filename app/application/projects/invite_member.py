@@ -11,16 +11,16 @@ from app.infrastructure.services.email_service import EmailService
 class InviteProjectMemberUseCase:
     def __init__(
         self,
-        project_repo: ProjectRepository,
-        user_repo: UserRepository,
-        invitation_repo: ProjectInvitationRepository,
-        member_repo: ProjectMemberRepository,
+        project_repository: ProjectRepository,
+        user_repository: UserRepository,
+        invitation_repository: ProjectInvitationRepository,
+        member_repository: ProjectMemberRepository,
         email_service: EmailService,
     ):
-        self.project_repo = project_repo
-        self.user_repo = user_repo
-        self.invitation_repo = invitation_repo
-        self.member_repo = member_repo
+        self.project_repository = project_repository
+        self.user_repository = user_repository
+        self.invitation_repository = invitation_repository
+        self.member_repository = member_repository
         self.email_service = email_service
 
     def execute(
@@ -31,17 +31,17 @@ class InviteProjectMemberUseCase:
         current_user_id: int,
     ):
         # validar manager
-        if not self.project_repo.is_manager(project_id, current_user_id):
+        if not self.project_repository.is_manager(project_id, current_user_id):
             raise NotProjectManagerError()
 
-        invited_user = self.user_repo.get_by_email(invited_email)
+        invited_user = self.user_repository.get_by_email(invited_email)
         if not invited_user:
             raise ResourceNotFoundError("User")
 
-        if self.member_repo.is_member(project_id, invited_user.id):
+        if self.member_repository.is_member(project_id, invited_user.id):
             raise ValueError("User is already a project member")
 
-        if self.invitation_repo.get_pending(project_id, invited_user.id):
+        if self.invitation_repository.get_pending(project_id, invited_user.id):
             raise ValueError("Invitation already sent")
 
         invitation = ProjectInvitation(
@@ -51,7 +51,7 @@ class InviteProjectMemberUseCase:
             expires_at=datetime.utcnow() + timedelta(days=7),
         )
 
-        invitation = self.invitation_repo.create(invitation)
+        invitation = self.invitation_repository.create(invitation)
 
         self.email_service.send_project_invitation(
             to_email=invited_email,

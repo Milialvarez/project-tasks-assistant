@@ -13,29 +13,29 @@ class UpdateBlockerUseCase:
     def __init__(
             self,
             *,
-            blocker_repo:BlockerRepository,
-            task_repo:TaskRepository,
-            task_status_repo:TaskStatusHistoryRepository,
-            user_repo:UserRepository,
-            project_member_repo:ProjectMemberRepository
+            blocker_repository:BlockerRepository,
+            task_repository:TaskRepository,
+            task_status_repository:TaskStatusHistoryRepository,
+            user_repository:UserRepository,
+            project_member_repository:ProjectMemberRepository
     ):
-        self.blocker_repo=blocker_repo
-        self.task_repo=task_repo
-        self.task_status_history_repo=task_status_repo
-        self.user_repo=user_repo
-        self.project_member_repo=project_member_repo
+        self.blocker_repository=blocker_repository
+        self.task_repository=task_repository
+        self.task_status_history_repository=task_status_repository
+        self.user_repository=user_repository
+        self.project_member_repository=project_member_repository
 
     def execute(self, blocker_id: int, blocker_data: BlockerUpdate, user_id: int):
 
-        blocker = self.blocker_repo.get_by_id(blocker_id)
+        blocker = self.blocker_repository.get_by_id(blocker_id)
         if not blocker:
             raise ResourceNotFoundError("Blocker")
 
-        task = self.task_repo.get_by_id(blocker.task_id)
+        task = self.task_repository.get_by_id(blocker.task_id)
         if not task:
             raise ResourceNotFoundError("Task")
 
-        if not self.project_member_repo.is_member(task.project_id, user_id):
+        if not self.project_member_repository.is_member(task.project_id, user_id):
             raise NotProjectMemberError(
                 "You are not allowed to update blockers in this project"
             )
@@ -50,7 +50,7 @@ class UpdateBlockerUseCase:
             blocker.solved_at = datetime.now()
 
         try:
-            updated_blocker = self.blocker_repo.update(blocker)
+            updated_blocker = self.blocker_repository.update(blocker)
 
             if updated_blocker.status == BlockerStatus.resolved:
                 history = TaskStatusHistory(
@@ -60,10 +60,10 @@ class UpdateBlockerUseCase:
                     new_status=TaskStatus.in_progress,
                     changed_by=user_id,
                 )
-                self.task_status_history_repo.create(history)
+                self.task_status_history_repository.create(history)
 
                 task.current_status = TaskStatus.in_progress
-                self.task_repo.update(task)
+                self.task_repository.update(task)
 
             return updated_blocker
 

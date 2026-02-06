@@ -6,12 +6,17 @@ from app.domain.enums import InvitationStatus, ProjectRole
 from app.domain.exceptions import ResourceNotFoundError
 
 class AcceptProjectInvitationUseCase:
-    def __init__(self, invitation_repo: ProjectInvitationRepository, member_repo: ProjectMemberRepository):
-        self.invitation_repo = invitation_repo
-        self.member_repo = member_repo
+    def __init__(
+            self, 
+            *,
+            invitation_repository: ProjectInvitationRepository, 
+            member_repository: ProjectMemberRepository
+            ):
+            self.invitation_repository = invitation_repository
+            self.member_repository = member_repository
 
     def execute(self, invitation_id: int, user_id: int):
-        invitation = self.invitation_repo.get_by_id(invitation_id)
+        invitation = self.invitation_repository.get_by_id(invitation_id)
 
         if not invitation:
             raise ResourceNotFoundError("Invitation")
@@ -21,7 +26,7 @@ class AcceptProjectInvitationUseCase:
 
         if invitation.expires_at < datetime.utcnow():
             invitation.status = InvitationStatus.expired
-            self.invitation_repo.update(invitation)
+            self.invitation_repository.update(invitation)
             raise ValueError("Invitation expired")
 
         if invitation.invited_user_id != user_id:
@@ -33,8 +38,8 @@ class AcceptProjectInvitationUseCase:
             role=ProjectRole.member,
         )
 
-        self.member_repo.add_member(member)
+        self.member_repository.add_member(member)
 
 
         invitation.status = InvitationStatus.accepted
-        self.invitation_repo.update(invitation)
+        self.invitation_repository.update(invitation)
