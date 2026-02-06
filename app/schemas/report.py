@@ -16,8 +16,10 @@ class BlockerSummary(BaseModel):
 
 class DecisionSummary(BaseModel):
     title: str
-    status: str
+    context: str
+    impact: str
     created_at: date
+    chosen_by: int
 
 class SprintReportResponse(BaseModel):
     sprint_id: int

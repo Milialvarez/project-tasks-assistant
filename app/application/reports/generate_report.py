@@ -16,7 +16,7 @@ class GenerateReport:
         self.sprint_repository= sprint_repository
         self.report_service=report_service
 
-    def execute(self, sprint_id: int, current_user_id: int):
+    async def execute(self, sprint_id: int, current_user_id: int):
         sprint = self.sprint_repository.get_by_id(sprint_id)
         if not sprint:
             raise ResourceNotFoundError("Sprint")
@@ -24,4 +24,4 @@ class GenerateReport:
         if not self.project_member_repository.is_member(sprint.project_id, current_user_id):
             raise NotProjectMemberError()
         
-        return self.report_service.generate_sprint_report(sprint_id)
+        return await self.report_service.generate_sprint_report(sprint_id)

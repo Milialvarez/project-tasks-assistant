@@ -1,22 +1,20 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Engine, select, and_, func
-from app.infrastructure.db.models import Sprint, Task, TaskBlocker, Decision, Project
-from app.schemas.report import SprintReportResponse, SprintMetrics, BlockerSummary, DecisionSummary
-from app.core.config import settings
+import os
+from datetime import datetime
+from sqlalchemy.orm import Session
+from sqlalchemy import select, and_
+from fastapi import HTTPException
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-from fastapi import HTTPException
-from langchain_community.utilities import SQLDatabase
-import os
+from app.domain.enums import TaskStatus
+from app.infrastructure.db.models import Sprint, Task, TaskBlocker, Decision
+from app.schemas.report import SprintReportResponse, SprintMetrics, BlockerSummary, DecisionSummary
 
 class ReportService:
-    def __init__(self, db_engine: Engine):
-        self.engine = db_engine
+    def __init__(self, db_session: Session):
+        self.db = db_session
         self.model_name = "llama-3.3-70b-versatile"
         
-        self.db = SQLDatabase(self.engine, sample_rows_in_table_info=0)
-        
-        api_key = os.getenv("API_KEY") 
+        api_key = os.getenv("API_KEY")
         
         self.llm = ChatGroq(
             temperature=0,
@@ -25,26 +23,22 @@ class ReportService:
         )
 
     async def generate_sprint_report(self, sprint_id: int) -> SprintReportResponse:
-        # 1. Obtener datos del Sprint
-        result = await self.db.execute(select(Sprint).where(Sprint.id == sprint_id))
+        
+        result = self.db.execute(select(Sprint).where(Sprint.id == sprint_id))
         sprint = result.scalar_one_or_none()
         
         if not sprint:
             raise HTTPException(status_code=404, detail="Sprint not found")
 
-        # 2. Obtener Tareas del Sprint
-        tasks_result = await self.db.execute(select(Task).where(Task.sprint_id == sprint_id))
+        tasks_result = self.db.execute(select(Task).where(Task.sprint_id == sprint_id))
         tasks = tasks_result.scalars().all()
 
-        # 3. Calcular Métricas
         total = len(tasks)
-        completed = len([t for t in tasks if t.status == "DONE"])
-        in_progress = len([t for t in tasks if t.status == "IN_PROGRESS"])
-        # Asumiendo que 'BLOCKED' es un status, o si tienes una logica distinta, ajustalo aqui
-        blocked_status = len([t for t in tasks if t.status == "BLOCKED"]) 
-        pending = len([t for t in tasks if t.status == "TODO"])
+        completed = len([t for t in tasks if t.current_status == TaskStatus.completed])
+        in_progress = len([t for t in tasks if t.current_status == TaskStatus.in_progress])
+        blocked_status = len([t for t in tasks if t.current_status == TaskStatus.blocked]) 
+        pending = len([t for t in tasks if t.current_status == TaskStatus.pending])
 
-        # Calcular porcentaje (evitar división por cero)
         completion_pct = (completed / total * 100) if total > 0 else 0.0
 
         metrics = SprintMetrics(
@@ -56,42 +50,39 @@ class ReportService:
             completion_percentage=round(completion_pct, 2)
         )
 
-        # 4. Obtener Bloqueos Activos (join con tareas de este sprint)
-        # Buscamos blockers que estén "resueltos = False" en tareas de este sprint
         blockers_query = select(TaskBlocker, Task).join(Task).where(
             and_(
                 Task.sprint_id == sprint_id,
-                TaskBlocker.is_resolved == False
+                TaskBlocker.solved_at == None 
             )
         )
-        blockers_res = await self.db.execute(blockers_query)
-        active_blockers_data = blockers_res.scalars().all()
+        blockers_res = self.db.execute(blockers_query)
+        blockers_data = blockers_res.all() 
         
-        blockers_summary = [
-            # Ojo: Accedemos a la task via lazy loading o eager loading si está configurado
-            # Aquí asumo que podemos acceder a la relacion, sino ajustamos la query
-            BlockerSummary(task_title=f"Task #{b.task_id}", blocker_description=b.description) 
-            for b in active_blockers_data
-        ]
+        blockers_summary = []
+        for row in blockers_data:
+            blocker = row[0] 
+            blockers_summary.append(
+                BlockerSummary(task_title=f"Task #{blocker.task_id}", blocker_description=blocker.cause)
+            )
 
-        # 5. Obtener Decisiones (Tomadas durante las fechas del sprint para el proyecto)
-        # Asumiendo que Decision tiene 'created_at' y link a 'project_id'
+        query_end_date = sprint.ended_at if sprint.ended_at else datetime.now()
+
         decisions_query = select(Decision).where(
             and_(
                 Decision.project_id == sprint.project_id,
-                Decision.created_at >= sprint.start_date,
-                Decision.created_at <= sprint.end_date
+                Decision.created_at >= sprint.started_at,
+                Decision.created_at <= query_end_date
             )
         )
-        decisions_res = await self.db.execute(decisions_query)
+        decisions_res = self.db.execute(decisions_query)
         decisions_data = decisions_res.scalars().all()
 
         decisions_summary = [
-            DecisionSummary(title=d.title, status=d.status, created_at=d.created_at.date())
+            DecisionSummary(title=d.title, context=d.context, impact=d.impact, created_at=d.created_at.date(), chosen_by=d.chosen_by)
             for d in decisions_data
         ]
 
-        # 6. Generar Análisis con IA (Groq)
         ai_analysis_text = await self._generate_ai_analysis(
             sprint_name=sprint.name,
             metrics=metrics,
@@ -99,11 +90,14 @@ class ReportService:
             decisions=decisions_summary
         )
 
+        resp_start = sprint.started_at.date() if isinstance(sprint.started_at, datetime) else sprint.started_at
+        resp_end = sprint.ended_at.date() if sprint.ended_at and isinstance(sprint.ended_at, datetime) else None
+
         return SprintReportResponse(
             sprint_id=sprint.id,
             sprint_name=sprint.name,
-            period_start=sprint.start_date,
-            period_end=sprint.end_date,
+            period_start=resp_start,
+            period_end=resp_end if resp_end else resp_start, 
             metrics=metrics,
             active_blockers=blockers_summary,
             decisions_made=decisions_summary,

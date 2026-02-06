@@ -23,4 +23,4 @@ async def get_sprint_report(
     use_case = GenerateReport(project_member_repository=SqlAlchemyProjectMemberRepository(db),
                               sprint_repository=SqlAlchemySprintRepository(db),
                               report_service=ReportService(db))
-    return use_case.execute(sprint_id, current_user)
+    return await use_case.execute(sprint_id, current_user)
