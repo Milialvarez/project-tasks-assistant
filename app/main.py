@@ -13,7 +13,7 @@ from app.api.exception_handlers import (
     not_active_handler, not_found_handler, 
     not_manager_handler, not_member_handler, persistence_error_handler
 )
-from app.api.routers import ai, auth, decisions, objective, projects, sprints, tasks, users
+from app.api.routers import ai, auth, decisions, objective, projects, reports, sprints, tasks, users
 from app.domain.exceptions import (
     AuthenticationError, DomainError, NotProjectManagerError, 
     NotProjectMemberError, PersistenceError, ResourceNotFoundError, 
@@ -48,6 +48,7 @@ app.include_router(tasks.router)
 app.include_router(objective.router)
 app.include_router(decisions.router)
 app.include_router(ai.router)
+app.include_router(reports.router)
 
 app.add_exception_handler(DomainError, domain_error_handler)
 app.add_exception_handler(NotProjectMemberError, not_member_handler)
