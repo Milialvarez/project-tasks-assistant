@@ -77,7 +77,8 @@ app/
 -  Security & Background
     JWT Authentication: Secure access with Access/Refresh tokens.
     Email Service: Async email sending for account activation and invites.
-    Scheduler: Automatic cleanup of expired tokens (Background Tasks).
+    Background Tasks: Scheduler for utomatic cleanup of expired tokens.
+    Reports generator: usings AI for a complete analyzis with metrics.
 ---
 
 ## Tech Stack
