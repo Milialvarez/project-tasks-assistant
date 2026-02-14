@@ -55,7 +55,7 @@ app/
 ├── infrastructure/  # Secondary Adapters (SQLAlchemy, Groq Service, Email)
 └── core/            # Configuration & Wiring
 ```
----
+--- 
 
 ## Key Features
 -  Intelligent Analysis
